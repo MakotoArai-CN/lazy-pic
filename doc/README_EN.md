@@ -47,10 +47,10 @@ lazy-pic is a JavaScript plugin for lazy loading of images, and the project is s
 
 5. Parameter description
 
-   - 'emt' is the 'id' or 'class' attribute of the image that needs to be lazy loaded, and must be the label of the original image, which must be unique.
-   - 'animeTime' is the time of the gradient during lazy loading, in milliseconds, and the recommended value is 1000-2000.
-   - 'tagType' is the lazy loading mode of the image, the default value is '2img', and the optional values are '2img', '1img', and 'bgimg'.
-   - 'Gaussian' indicates whether to enable Gaussian blur, which is enabled by default to '1', and the optional values are '0', '1', 'false', and 'true'.
+   - `emt` is the `id` or `class` attribute of the image that needs to be lazy loaded, and must be the label of the original image, which must be unique.
+   - `animeTime` is the time of the gradient during lazy loading, in milliseconds, and the recommended value is 1000-2000.
+   - `tagType` is the lazy loading mode of the image, the default value is `2img`, and the optional values are `2img`, `data-src`, and `bgimg`.
+   - `Gaussian` indicates whether to enable Gaussian blur, which is enabled by default to `1`, and the optional values are `0`, `1`, `false`, and `true`.
 
 #### MODEL2
 
@@ -81,7 +81,7 @@ lazy-pic is a JavaScript plugin for lazy loading of images, and the project is s
     ```
 
 5. Parameter description:
-    - 'emt' is the 'id' or 'class' attribute of the image that needs to be lazy loaded, and it needs to be unique.
+    - `emt` is the `id` or `class` attribute of the image that needs to be lazy loaded, and it needs to be unique.
     - Other parameters are the same as those of MODEL1.
 
 ### Changelog

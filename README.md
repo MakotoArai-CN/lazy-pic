@@ -49,7 +49,7 @@ lazy-pic 是用于实现图片懒加载的JavaScript插件，项目还在开发�
 
    - `emt`为需要懒加载的图片的`id`或`class`属性，必须为原图标签，需要具有唯一性。
    - `animeTime`为懒加载时渐变的时间，单位为毫秒，建议数值1000-2000。
-   - `tagType`为图片懒加载的模式，默认为`2img`，可选值为`2img`、`1img`、`bgimg`。
+   - `tagType`为图片懒加载的模式，默认为`2img`，可选值为`2img`、`data-src`、`bgimg`。
    - `Gaussian`为是否启用高斯模糊，默认为`1`启用，可选值为`0`、`1`、`false`、`true`。
 
 #### MODEL2
