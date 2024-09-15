@@ -86,6 +86,14 @@ lazy-pic is a JavaScript plugin for lazy loading of images, and the project is s
 
 ### Changelog
 
+#### 0.0.3-beta
+
+- Optimized lazy loading mode for slow internet speeds.
+- Fixed some bugs in the native JS mode.
+- Planned updates for the next version:
+    1. Add background lazy loading mode.
+    2. Introduce more configurable parameters.
+
 #### 0.0.2-beta
 
 - Added lazy loading mode for data-src.

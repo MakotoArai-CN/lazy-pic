@@ -91,22 +91,24 @@ function lazyonePic(emt, animeTime, Gaussian) {
             img.onload = function () {}
             if (trueSrc.match(/\/([^\/]+)\.*$/)[0] !== img.src.match(/\/([^\/]+)\.*$/)[0]) {
                 let newImg = new Image();
+                const startTime = Date.now();
                 newImg.src = trueSrc;
                 newImg.onload = function () {
-                    if (self.Gaussian) {
-                        img.classList.add("img-blur");
-                    }
-                    img.src=newImg.src;
+                    const endTime = Date.now();
+                    const loadTime = endTime - startTime;
+                    img.src = newImg.src;
                     observer.unobserve(img);
-                    if (self.Gaussian) {
-                        setTimeout(function () {
+                    
+                    if (this.Gaussian) {
+                        const animeDelay = loadTime + this.animeTime;
+                        img.style.transition = "filter 1s ease";
+                        img.classList.add("img-blur");
+                        setTimeout(() => {
                             img.classList.remove("img-blur");
                             img.classList.add("img-unblur");
-                        }, self.animeTime)
+                        }, animeDelay);
                     }
-
-                }
-
+                }.bind(this);
             }
         },
         this.style = function () {
