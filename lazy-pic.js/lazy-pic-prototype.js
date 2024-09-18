@@ -89,35 +89,29 @@ function lazyonePic(emt, animeTime, Gaussian) {
         var img = entry.target;
         var trueSrc = img.getAttribute("data-src");
         var observer = new IntersectionObserver(this.callback.bind(this));
-        if (trueSrc.match(/\/([^\/]+)\.*$/)[1] !== img.src.match(/\/([^\/]+)\.*$/)[1]) {
-            var newImg = new Image();
-            var startTime = Date.now();
+        if (trueSrc.match(/\/([^\/]+)\.*$/)[0] !== img.src.match(/\/([^\/]+)\.*$/)[0]) {
+            let newImg = new Image();
             newImg.src = trueSrc;
+            if (this.Gaussian) {
+                img.classList.add("img-blur");
+            }
             newImg.onload = function () {
-                var endTime = Date.now();
-                var loadTime = endTime - startTime;
                 img.src = newImg.src;
                 observer.unobserve(img);
-
-                if (this.Gaussian) {
-                    var animeDelay = loadTime + this.animeTime;
-                    img.style.WebkitFilter = 'blur(5px)';
-                    img.style.filter = 'blur(5px)';
+                let sleepTime=(Date.now()-startTime<200)?0:(this.animeTime/(this.animeTime/1000));
+                if (this.Gaussian && trueSrc.match(/\/([^\/]+)\.*$/)[0] == img.src.match(/\/([^\/]+)\.*$/)[0]) {
                     setTimeout(function () {
-                        img.style.WebkitFilter = '';
-                        img.style.filter = '';
-                    }, animeDelay);
+                        img.classList.remove("img-blur");
+                        img.classList.add("img-unblur");
+                    }, sleepTime);
                 }
             }.bind(this);
         }
     };
 
     this.style = function () {
-        var style = document.createElement("style");
-        style.innerHTML = `
-            .img-blur { filter: blur(5px); transition: filter 0.5s ease; }
-            .img-unblur { filter: blur(0px); transition: filter 1s ease; }
-        `;
+        let style = document.createElement("style");
+        style.innerHTML = `.img-blur {filter: blur(5px);transition: filter ${this.animeTime/1000}s ease;}.img-unblur {filter: blur(0px);transition: filter ${this.animeTime/1000}s ease;}`;
         document.head.appendChild(style);
-    };
+    }
 }

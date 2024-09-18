@@ -4,9 +4,9 @@ function lazyPic(setting) {
     this.emt = setting.emt;
     this.animeTime = setting.animeTime;
     this.tagType = setting.tagType;
-    this.Gaussian = setting.Gaussian=1;
+    this.Gaussian = setting.Gaussian === undefined?1:setting.Gaussian;
     console.log(this.Gaussian);
-    
+
     this.lazyLoad = function () {
         if (this.tagType == "data-src") {
             new lazyonePic(this.emt, this.animeTime, this.Gaussian).lazyLoad();
@@ -66,7 +66,8 @@ function lazyonePic(emt, animeTime, Gaussian) {
     this.emt = emt;
     this.animeTime = animeTime;
     this.Gaussian = Gaussian;
-
+    console.log(Gaussian);
+    
     this.lazyLoad = function () {
         this.style();
         const $finalImages = $(this.emt);
@@ -90,30 +91,28 @@ function lazyonePic(emt, animeTime, Gaussian) {
             let observer = new IntersectionObserver(this.callback.bind(this));
             img.onload = function () {}
             if (trueSrc.match(/\/([^\/]+)\.*$/)[0] !== img.src.match(/\/([^\/]+)\.*$/)[0]) {
+                let startTime = Date.now();
                 let newImg = new Image();
-                const startTime = Date.now();
                 newImg.src = trueSrc;
+                if (this.Gaussian) {
+                    img.classList.add("img-blur");
+                }
                 newImg.onload = function () {
-                    const endTime = Date.now();
-                    const loadTime = endTime - startTime;
                     img.src = newImg.src;
                     observer.unobserve(img);
-                    
-                    if (this.Gaussian) {
-                        const animeDelay = loadTime + this.animeTime;
-                        img.style.transition = "filter 1s ease";
-                        img.classList.add("img-blur");
-                        setTimeout(() => {
+                    let sleepTime=(Date.now()-startTime<200)?0:(this.animeTime/(this.animeTime/1000));
+                    if (this.Gaussian && trueSrc.match(/\/([^\/]+)\.*$/)[0] == img.src.match(/\/([^\/]+)\.*$/)[0]) {
+                        setTimeout(function () {
                             img.classList.remove("img-blur");
                             img.classList.add("img-unblur");
-                        }, animeDelay);
+                        }, sleepTime);
                     }
                 }.bind(this);
             }
         },
         this.style = function () {
             let style = document.createElement("style");
-            style.innerHTML = '.img-blur {filter: blur(5px);transition: filter 0.5s ease;}.img-unblur {filter: blur(0px);transition: filter 1s ease;}';
+            style.innerHTML = `.img-blur {filter: blur(5px);transition: filter ${this.animeTime/1000}s ease;}.img-unblur {filter: blur(0px);transition: filter ${this.animeTime/1000}s ease;}`;
             document.head.appendChild(style);
         }
 };
