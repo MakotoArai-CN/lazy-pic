@@ -84,28 +84,91 @@ lazy-pic is a JavaScript plugin for lazy loading of images, and the project is s
     - `emt` is the `id` or `class` attribute of the image that needs to be lazy loaded, and it needs to be unique.
     - Other parameters are the same as those of MODEL1.
 
+#### MODEL3
+
+1. Introduce the js file, then use it directly in the HTML code.
+
+2. HTML code structure
+
+     ```html
+    <div class="swiper-slide">
+        <div><span></span><span></span><span></span><span></span><span></span></div>
+        <img style="width:100%" data-src="image/Miku1.jpg" class="load-final" loading="lazy">
+    </div>
+    ```
+
+    When the web is executed, an animation graph will be displayed, which will be displayed in priority according to the set width and height.
+
+3. JQuery code call:
+
+    ```javascript
+    $(document).ready(function () {
+        var lazy = new lazyPic({ emt: ".load-final", animeTime: 1200, tagType: "anime",width:"100%", height:"500px"});
+        lazy.lazyLoad();
+    }); 
+    ```
+
+4. JS code call
+
+    ```javascript
+    window.onload = function () {
+        var lazy = new lazyPic({ emt: ".load-final", animeTime: 1200, tagType: "anime",width:"100%", height:"500px"});
+        lazy.lazyLoad();
+    }
+    ```
+
+5. Parameter explanation:
+
+   - `width` and `height` are the animation lazy loading mode animation placeholder width and height.
+   - Other parameters are consistent with MODEL1/MODEL2.
+
 ### Changelog
 
-#### 0.0.3-beta
+#### 0.3.0-beta
 
-- Optimized lazy loading mode for slow internet speeds.
-- Fixed some bugs in the native JS mode.
-- Planned updates for the next version:
-    1. Add background lazy loading mode.
-    2. Introduce more configurable parameters.
+- Added animation (anime) lazy loading mode.
+- Optimized lazy loading mode.
+- Modified version number content.
+- Upcoming version update plan:
+  1. Optimize lazy loading judgment logic, reduce code.
+  2. (Possibly) fix known animation lazy loading mode bug.
 
-#### 0.0.2-beta
+#### 0.2.1-beta
 
-- Added lazy loading mode for data-src.
-- Added a pure JavaScript version, which can be used on any page.
-- Gaussian blur added.
-- The following version update is planned:
-    1. Add a lazy loading mode for backgrounds.
-    2. Added more optional parameter settings.
+- Fixed the delay in displaying caused by the lazy loading judgment logic.
+
+#### 0.2.0-beta
+
+- Optimized the lazy loading mode caused by slow network speed.
+- Fixed some bugs in the native JavaScript mode.
+- Upcoming version update plan:
+  1. Add animation lazy loading mode.
+  2. Add more optional parameter settings.
+
+#### 0.1.0-beta
+
+- Added data-src lazy loading mode.
+- Added a pure JavaScript version that can be used on any page.
+- Added Gaussian blur.
+- Upcoming version update plan:
+  1. Add animation lazy loading mode.
+  2. Add more optional parameter settings.
 
 #### 0.0.1-beta
 
-- Beta only, features not yet perfect.
-- The following version update is planned:
-  1. Progressive loading to add more thumbnails.
+- Only the beta version, with incomplete functionality.
+- Upcoming version update plan:
+  1. Add more progressive loading of thumbnails.
   2. Add a pure JavaScript version.
+
+## Developer
+
+[MakotoArai-CN](https://github.com/MakotoArai-CN)
+
+## License
+
+This project uses the Apache2.0 license, which can be found in the root directory of the repository.
+
+## Acknowledgments
+
+[jQuery](https://jquery.com/)
