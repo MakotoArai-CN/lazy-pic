@@ -1,0 +1,60 @@
+{
+  "name": "@makotoarai/lazy-pic",
+  "version": "0.4.0-beta",
+  "description": "Elegant progressive image loading library with TypeScript support",
+  "main": "dist/lazy-pic.umd.js",
+  "module": "dist/lazy-pic.es.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/lazy-pic.es.js",
+      "require": "./dist/lazy-pic.umd.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "build:types": "tsc --emitDeclarationOnly",
+    "preview": "vite preview",
+    "test": "vitest",
+    "lint": "eslint src --ext .ts,.tsx",
+    "format": "prettier --write src/**/*.{ts,tsx}",
+    "prepublishOnly": "bun run build",
+    "release": "npm run build && npm publish --access public",
+    "release:beta": "npm run build && npm publish --access public --tag beta"
+  },
+  "keywords": [
+    "lazy",
+    "loading",
+    "image",
+    "progressive",
+    "typescript",
+    "intersection-observer"
+  ],
+  "author": "MakotoArai-CN",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0",
+    "terser": "^5.24.0",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0",
+    "vite-plugin-dts": "^3.0.0",
+    "vitest": "^1.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MakotoArai-CN/lazy-pic.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MakotoArai-CN/lazy-pic/issues"
+  },
+  "homepage": "https://github.com/MakotoArai-CN/lazy-pic#readme"
+}

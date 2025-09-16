@@ -1,5 +1,5 @@
 <div align="center">
-<img src="lazy-pic-logo.png" width="300" height="300" alt="LazyPic Logo" style="border-radius: 50%" />
+<img src="../lazy-pic-logo.png" width="300" height="300" alt="LazyPic Logo" style="border-radius: 50%" />
 
 <!-- npm V10.9.0 -->
 [![npm](https://img.shields.io/badge/npm-v10.9.0-orange.svg)](https://www.npmjs.com)
@@ -15,7 +15,7 @@
 
 </div>
 
-> Elegant progressive image loading library with TypeScript support
+> 🖼️ 优雅的渐进式图像加载库，支持 TypeScript
 
 <p align="center">
 <pre>
@@ -31,22 +31,22 @@
 
 <p align="center">
 
-[[English](./README.md) | [中文](./docs/README-ZH.md) | [日本語](./docs/README-JP.md) ]
+[[English](../README.md) | [中文](./README-ZH.md) | [日本語](./README-JP.md) ]
 
 </p>
 
-## ✨ Features
+## ✨ 特性
 
-- 🚀 **High Performance**: Optimized with TypeScript and modern browser APIs
-- 🎨 **Rich Animations**: 6 animation types with customizable easing functions
-- 📱 **Responsive**: Perfect for all device sizes
-- 🎯 **Strategy Pattern**: Three loading strategies for different use cases
-- 🔧 **Flexible Configuration**: Extensive customization options
-- 📦 **Zero Dependencies**: Pure TypeScript implementation
-- 🌍 **Browser Support**: Modern browsers with IntersectionObserver support
-- ⚡ **Optimized Transitions**: Smooth, elegant progressive loading effects
+- 🚀 **高性能**: 使用 TypeScript 和现代浏览器 API 优化
+- 🎨 **丰富动画**: 6 种动画类型，支持自定义缓动函数
+- 📱 **响应式**: 适用于所有设备尺寸
+- 🎯 **策略模式**: 三种加载策略适用于不同用例
+- 🔧 **灵活配置**: 丰富的自定义选项
+- 📦 **零依赖**: 纯 TypeScript 实现
+- 🌍 **浏览器支持**: 支持具有 IntersectionObserver 的现代浏览器
+- ⚡ **优化过渡**: 平滑、优雅的渐进式加载效果
 
-## 📦 Installation
+## 📦 安装
 
 ### NPM
 ```bash
@@ -63,19 +63,19 @@ bun add @makotoarai/lazy-pic
 <script src="https://unpkg.com/@makotoarai/lazy-pic@0.4.0-beta/dist/lazy-pic.umd.js"></script>
 ```
 
-### Browser
+### 浏览器
 
-1. Clone the repository: `git clone https://github.com/MakotoArai-CN/lazy-pic.git` or download the latest release.
+1. 克隆仓库: `git clone https://github.com/MakotoArai-CN/lazy-pic.git` 或下载最新版本。
 
-2. Include the `dist/lazy-pic.js` file in your HTML:
+2. 在 HTML 中引入 `dist/lazy-pic.js` 文件:
 
   ```html
   <script src="path/to/lazy-pic.js"></script>
   ```
 
-## 🚀 Quick Start
+## 🚀 快速开始
 
-### ES Modules
+### ES 模块
 
 ```javascript
 import { LazyPic } from '@makotoarai/lazy-pic';
@@ -90,9 +90,9 @@ const lazyPic = new LazyPic({
 lazyPic.init();
 ```
 
-## 📖 Usage Examples
+## 📖 使用示例
 
-### 1. Dual Image Strategy (Recommended)
+### 1. 双图像策略 (推荐)
 
 ```html
 <div style="position: relative">
@@ -112,7 +112,7 @@ const lazyPic = new LazyPic({
 lazyPic.init();
 ```
 
-### 2. Data-src Strategy
+### 2. Data-src 策略
 
 ```html
 <img src="thumbnail.jpg" data-src="full-image.jpg" class="lazy-image">
@@ -129,7 +129,7 @@ const lazyPic = new LazyPic({
 lazyPic.init();
 ```
 
-### 3. Animation Strategy
+### 3. 动画策略
 
 ```html
 <div>
@@ -153,21 +153,21 @@ const lazyPic = new LazyPic({
 lazyPic.init();
 ```
 
-## ⚙️ Configuration
+## ⚙️ 配置
 
 ```typescript
 interface LazyPicConfig {
-  selector: string;                    // Target element selector
-  animationDuration?: number;          // Animation duration (ms)
+  selector: string;                    // 目标元素选择器
+  animationDuration?: number;          // 动画持续时间 (毫秒)
   strategy?: 'dual-image' | 'data-src' | 'animation';
-  enableBlur?: boolean;                // Enable blur effect
-  blurIntensity?: number;              // Blur strength (px)
+  enableBlur?: boolean;                // 启用模糊效果
+  blurIntensity?: number;              // 模糊强度 (像素)
   animationType?: 'fade' | 'slide' | 'zoom' | 'scale' | 'rotate' | 'blur';
   easing?: 'linear' | 'ease' | 'easeIn' | 'easeOut' | 'easeInOut' | 'bounce' | 'elastic';
-  rootMargin?: string;                 // IntersectionObserver root margin
-  threshold?: number | number[];       // IntersectionObserver threshold
-  placeholder?: PlaceholderConfig;     // Placeholder configuration
-  quality?: QualityConfig;             // Image quality optimization
+  rootMargin?: string;                 // IntersectionObserver 根边距
+  threshold?: number | number[];       // IntersectionObserver 阈值
+  placeholder?: PlaceholderConfig;     // 占位符配置
+  quality?: QualityConfig;             // 图像质量优化
   onError?: (error: Error, element: Element) => void;
   onLoad?: (element: Element) => void;
   onStartLoad?: (element: Element) => void;
@@ -175,107 +175,107 @@ interface LazyPicConfig {
 }
 ```
 
-## 🎨 Animation Types
+## 🎨 动画类型
 
-- **fade**: Smooth opacity transition
-- **slide**: Slide in from bottom with fade
-- **zoom/scale**: Scale animation with fade
-- **rotate**: Rotation with scale animation
-- **blur**: Blur to sharp transition
+- **fade**: 平滑透明度过渡
+- **slide**: 从底部滑入并淡出
+- **zoom/scale**: 缩放动画与淡出
+- **rotate**: 旋转与缩放动画
+- **blur**: 模糊到清晰过渡
 
-## 🎭 Placeholder Animations
+## 🎭 占位符动画
 
-- **dots**: Bouncing dots loader
-- **spinner**: Rotating spinner
-- **pulse**: Pulsing circles
-- **wave**: Wave bars animation
-- **skeleton**: Skeleton screen effect
-- **shimmer**: Shimmering placeholder
+- **dots**: 弹跳点加载器
+- **spinner**: 旋转加载器
+- **pulse**: 脉冲圆圈
+- **wave**: 波浪条动画
+- **skeleton**: 骨架屏效果
+- **shimmer**: 闪烁占位符
 
-## 🔧 API Methods
+## 🔧 API 方法
 
-- `init()`: Initialize lazy loading
-- `destroy()`: Clean up and remove observers
-- `updateConfig(config)`: Update configuration
-- `loadImage(element)`: Manually trigger image loading
-- `refresh()`: Re-scan and observe new elements
-- `getStatus()`: Get current status
+- `init()`: 初始化懒加载
+- `destroy()`: 清理并移除观察者
+- `updateConfig(config)`: 更新配置
+- `loadImage(element)`: 手动触发图像加载
+- `refresh()`: 重新扫描并观察新元素
+- `getStatus()`: 获取当前状态
 
-## 📈 Performance Tips
+## 📈 性能提示
 
-1. Use `dual-image` strategy for best UX
-2. Optimize thumbnail sizes (< 5KB recommended)
-3. Set appropriate `rootMargin` for preloading
-4. Use WebP format when possible
-5. Enable progressive JPEG for large images
+1. 使用 `dual-image` 策略获得最佳用户体验
+2. 优化缩略图大小 (< 5KB 推荐)
+3. 设置适当的 `rootMargin` 进行预加载
+4. 尽可能使用 WebP 格式
+5. 为大图像启用渐进式 JPEG
 
-## 🔧 Build & Development
+## 🔧 构建与开发
 
 ```bash
-# Install dependencies
+# 安装依赖
 bun install
 
-# Development
+# 开发
 bun run dev
 
-# Build
+# 构建
 bun run build
 
-# Preview
+# 预览
 bun run preview
 ```
 
-## Changelog
+## 更新日志
 
 ### 0.4.0-beta
 
-- Use TypeScript for better type checking and code quality
-- Add type definitions for configuration and API methods
-- Add type definitions for placeholder and quality configurations
-- Removed unnecessary dependencies
-- Add npm , bun and CDN publishing
+- 使用 TypeScript 以获得更好的类型检查和代码质量
+- 为配置和 API 方法添加类型定义
+- 为占位符和质量配置添加类型定义
+- 移除不必要的依赖
+- 添加 npm、bun 和 CDN 发布支持
 
 ### 0.3.0-beta
 
-- Added animation (anime) lazy loading mode.
-- Optimized lazy loading mode.
-- Modified version number content.
-- Upcoming version update plan:
-  1. Optimize lazy loading judgment logic, reduce code.
-  2. (Possibly) fix known animation lazy loading mode bug.
+- 添加动画 (anime) 懒加载模式。
+- 优化懒加载模式。
+- 修改版本号内容。
+- 即将到来的版本更新计划：
+  1. 优化懒加载判断逻辑，减少代码。
+  2. (可能)修复已知的动画懒加载模式错误。
 
 ### 0.2.1-beta
 
-- Fixed the delay in displaying caused by the lazy loading judgment logic.
+- 修复由懒加载判断逻辑引起的显示延迟。
 
 ### 0.2.0-beta
 
-- Optimized the lazy loading mode caused by slow network speed.
-- Fixed some bugs in the native JavaScript mode.
-- Upcoming version update plan:
-  1. Add animation lazy loading mode.
-  2. Add more optional parameter settings.
+- 优化由网络速度慢引起的懒加载模式。
+- 修复原生 JavaScript 模式中的一些错误。
+- 即将到来的版本更新计划：
+  1. 添加动画懒加载模式。
+  2. 添加更多可选参数设置。
 
 ### 0.1.0-beta
 
-- Added data-src lazy loading mode.
-- Added a pure JavaScript version that can be used on any page.
-- Added Gaussian blur.
-- Upcoming version update plan:
-  1. Add animation lazy loading mode.
-  2. Add more optional parameter settings.
+- 添加 data-src 懒加载模式。
+- 添加可在任何页面上使用的纯 JavaScript 版本。
+- 添加高斯模糊。
+- 即将到来的版本更新计划：
+  1. 添加更多渐进式缩略图加载。
+  2. 添加纯 JavaScript 版本。
 
 ### 0.0.1-beta
 
-- Only the beta version, with incomplete functionality.
-- Upcoming version update plan:
-  1. Add more progressive loading of thumbnails.
-  2. Add a pure JavaScript version.
+- 仅 beta 版本，功能不完整。
+- 即将到来的版本更新计划：
+  1. 添加更多渐进式缩略图加载。
+  2. 添加纯 JavaScript 版本。
 
-## 📄 License
+## 📄 许可证
 
-Apache-2.0 License
+Apache-2.0 许可证
 
-## 🤝 Contributing
+## 🤝 贡献
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+欢迎贡献！请随时提交 Pull Request。
