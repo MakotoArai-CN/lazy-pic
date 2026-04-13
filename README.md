@@ -60,17 +60,29 @@ bun add @makotoarai/lazy-pic
 
 ### CDN
 ```html
-<script src="https://unpkg.com/@makotoarai/lazy-pic@0.4.0-beta/dist/lazy-pic.umd.js"></script>
+<script src="https://unpkg.com/@makotoarai/lazy-pic@0.5.0/dist/lazy-pic.umd.js"></script>
 ```
 
 ### Browser
 
 1. Clone the repository: `git clone https://github.com/MakotoArai-CN/lazy-pic.git` or download the latest release.
 
-2. Include the `dist/lazy-pic.js` file in your HTML:
+1. Include the `dist/lazy-pic.umd.js` file in your HTML:
 
   ```html
-  <script src="path/to/lazy-pic.js"></script>
+  <script src="path/to/lazy-pic.umd.js"></script>
+  ```
+
+1. Use the UMD global in the browser:
+
+  ```html
+  <script>
+    const lazyPic = new LazyPic.LazyPic({
+      selector: '.lazy-image',
+      strategy: 'data-src'
+    });
+    lazyPic.init();
+  </script>
   ```
 
 ## 🚀 Quick Start
@@ -90,6 +102,16 @@ const lazyPic = new LazyPic({
 lazyPic.init();
 ```
 
+## 🌐 Examples
+
+- [Examples Hub](examples/index.html)
+- [Vanilla Demo](examples/vanilla.html)
+- [Vue CDN Demo](examples/vue.html)
+- [React CDN Demo](examples/react.html)
+- [Alpine CDN Demo](examples/alpine.html)
+
+All browser examples load `dist/lazy-pic.umd.js`. Build the library with `bun run build` before opening them.
+
 ## 📖 Usage Examples
 
 ### 1. Dual Image Strategy (Recommended)
@@ -105,9 +127,10 @@ lazyPic.init();
 const lazyPic = new LazyPic({
   selector: '.main-image',
   strategy: 'dual-image',
-  animationType: 'fade', // fade, slide, scale, zoom, rotate, blur
+  animationType: 'fade', // fade, slide, scale, zoom, blur, flip, reveal
   animationDuration: 1200,
-  easing: 'easeOut' // linear, ease, easeIn, easeOut, easeInOut, bounce, elastic
+  easing: 'ease-out', // linear, ease, ease-in, ease-out, ease-in-out, bounce, elastic
+  completionEffect: { enabled: false }
 });
 lazyPic.init();
 ```
@@ -162,18 +185,23 @@ interface LazyPicConfig {
   strategy?: 'dual-image' | 'data-src' | 'animation';
   enableBlur?: boolean;                // Enable blur effect
   blurIntensity?: number;              // Blur strength (px)
-  animationType?: 'fade' | 'slide' | 'zoom' | 'scale' | 'rotate' | 'blur';
-  easing?: 'linear' | 'ease' | 'easeIn' | 'easeOut' | 'easeInOut' | 'bounce' | 'elastic';
+  animationType?: 'fade' | 'slide' | 'zoom' | 'scale' | 'rotate' | 'blur' | 'flip' | 'reveal' | 'spiral';
+  easing?: 'linear' | 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'bounce' | 'elastic';
   rootMargin?: string;                 // IntersectionObserver root margin
   threshold?: number | number[];       // IntersectionObserver threshold
   placeholder?: PlaceholderConfig;     // Placeholder configuration
-  quality?: QualityConfig;             // Image quality optimization
+  completionEffect?: CompletionEffectConfig; // Optional post-load effect (disabled by default when omitted)
+  quality?: QualityConfig;             // Deprecated: currently not applied at runtime
   onError?: (error: Error, element: Element) => void;
   onLoad?: (element: Element) => void;
   onStartLoad?: (element: Element) => void;
-  onProgress?: (progress: number, element: Element) => void;
+  onProgress?: (progress: number, element: Element) => void; // Deprecated: not emitted yet
 }
 ```
+
+> Note: `progressive`, `mosaic`, advanced `performance` settings, and `loadAll()` are not part of the current runtime API.
+> For safety, `placeholder.customContent` and `mask.customContent` treat string values as plain text instead of HTML.
+> The built-in `.lazy-pic-loaded` class no longer adds a flash/pulse automatically. Use `completionEffect` when you want an explicit post-load flourish.
 
 ## 🎨 Animation Types
 
@@ -191,6 +219,55 @@ interface LazyPicConfig {
 - **wave**: Wave bars animation
 - **skeleton**: Skeleton screen effect
 - **shimmer**: Shimmering placeholder
+- **progress-bar**: Sliding progress bar
+- **skeleton-lines**: Multi-line skeleton text
+- **diagonal-shimmer**: Diagonal shimmer sweep
+- **orbit**: Orbiting rings around a core
+- **grid**: Animated grid blocks
+- **typing**: Typing indicator style loader
+- **bars / equalizer**: Vertical audio-style bars
+- **arc**: Minimal circular arc spinner
+- **wave-dots**: Dots moving in a wave
+- **scanner**: Vertical scanner pass
+- **radar**: Radar sweep effect
+- **shine**: Horizontal shine sweep
+- **pulse-ring**: Expanding ring pulses
+- **cube**: Rotating cube stack
+- **blink**: Blink/eye style indicator
+- **ladder / flow**: Step and flow motion placeholders
+
+Example animation-only config:
+
+```javascript
+const lazyPic = new LazyPic({
+  selector: '.animated-image',
+  strategy: 'animation',
+  placeholder: {
+    animation: 'radar',
+    color: '#667eea',
+    showText: true,
+    loadingText: 'Loading preview...'
+  },
+  completionEffect: {
+    enabled: true,
+    type: 'glow'
+  }
+});
+```
+
+> String values passed to `placeholder.customContent` render as plain text. Pass an `HTMLElement` when you need custom DOM.
+> Recommended defaults for a more elegant loading experience: `completionEffect.enabled: false` with `placeholder.animation: 'skeleton'`, `shimmer`, `progress-bar`, or `radar`.
+
+## 🎯 High-level differentiation
+
+Compared with basic progressive image loaders, LazyPic now differentiates itself through:
+
+- richer placeholder animation vocabulary,
+- optional completion effects instead of mandatory flash,
+- multiple progressive image strategies in one library,
+- safer custom placeholder/mask rendering defaults.
+
+These changes keep the default experience elegant while still allowing more expressive loading states when explicitly configured.
 
 ## 🔧 API Methods
 
@@ -203,11 +280,11 @@ interface LazyPicConfig {
 
 ## 📈 Performance Tips
 
-1. Use `dual-image` strategy for best UX
-2. Optimize thumbnail sizes (< 5KB recommended)
-3. Set appropriate `rootMargin` for preloading
-4. Use WebP format when possible
-5. Enable progressive JPEG for large images
+- Prefer `skeleton`, `shimmer`, `progress-bar`, `grid`, or `typing` for the lowest overhead placeholder animations.
+- Use `orbit`, `radar`, `cube`, or `particles` more selectively on hero media or demos.
+- Keep `completionEffect.enabled` off unless you want a deliberate post-load flourish.
+- Use `dual-image` strategy for best UX when you already have thumbnails.
+- Optimize thumbnail sizes (< 5KB recommended) and set an appropriate `rootMargin` for preloading.
 
 ## 🔧 Build & Development
 
@@ -226,6 +303,12 @@ bun run preview
 ```
 
 ## Changelog
+
+### 0.5.0
+
+- Standardize local development commands on Bun and remove the redundant Vitest wrapper/config files
+- Split examples into dedicated Vanilla, Vue, React, and Alpine CDN demo pages
+- Refresh browser and CDN docs to use `dist/lazy-pic.umd.js` and the UMD global API
 
 ### 0.4.0-beta
 

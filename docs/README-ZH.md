@@ -60,17 +60,29 @@ bun add @makotoarai/lazy-pic
 
 ### CDN
 ```html
-<script src="https://unpkg.com/@makotoarai/lazy-pic@0.4.0-beta/dist/lazy-pic.umd.js"></script>
+<script src="https://unpkg.com/@makotoarai/lazy-pic@0.5.0/dist/lazy-pic.umd.js"></script>
 ```
 
 ### 浏览器
 
 1. 克隆仓库: `git clone https://github.com/MakotoArai-CN/lazy-pic.git` 或下载最新版本。
 
-2. 在 HTML 中引入 `dist/lazy-pic.js` 文件:
+1. 在 HTML 中引入 `dist/lazy-pic.umd.js` 文件:
 
   ```html
-  <script src="path/to/lazy-pic.js"></script>
+  <script src="path/to/lazy-pic.umd.js"></script>
+  ```
+
+1. 在浏览器中使用 UMD 全局对象：
+
+  ```html
+  <script>
+    const lazyPic = new LazyPic.LazyPic({
+      selector: '.lazy-image',
+      strategy: 'data-src'
+    });
+    lazyPic.init();
+  </script>
   ```
 
 ## 🚀 快速开始
@@ -89,6 +101,16 @@ const lazyPic = new LazyPic({
 
 lazyPic.init();
 ```
+
+## 🌐 示例入口
+
+- [示例导航页](../examples/index.html)
+- [原生 JavaScript 演示](../examples/vanilla.html)
+- [Vue CDN 演示](../examples/vue.html)
+- [React CDN 演示](../examples/react.html)
+- [Alpine CDN 演示](../examples/alpine.html)
+
+所有浏览器示例都依赖 `dist/lazy-pic.umd.js`，打开前请先执行 `bun run build`。
 
 ## 📖 使用示例
 
@@ -226,6 +248,12 @@ bun run preview
 ```
 
 ## 更新日志
+
+### 0.5.0
+
+- 统一本地开发命令为 Bun，并移除多余的 Vitest 包装脚本与配置文件
+- 将示例拆分为独立的原生 JavaScript、Vue、React 与 Alpine CDN 页面
+- 更新浏览器与 CDN 文档，统一使用 `dist/lazy-pic.umd.js` 与 UMD 全局 API
 
 ### 0.4.0-beta
 

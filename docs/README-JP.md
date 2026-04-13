@@ -60,17 +60,29 @@ bun add @makotoarai/lazy-pic
 
 ### CDN
 ```html
-<script src="https://unpkg.com/@makotoarai/lazy-pic@0.4.0-beta/dist/lazy-pic.umd.js"></script>
+<script src="https://unpkg.com/@makotoarai/lazy-pic@0.5.0/dist/lazy-pic.umd.js"></script>
 ```
 
 ### ブラウザ
 
 1. リポジトリをクローン: `git clone https://github.com/MakotoArai-CN/lazy-pic.git` または最新リリースをダウンロード。
 
-2. HTMLに `dist/lazy-pic.js` ファイルを含める:
+1. HTMLに `dist/lazy-pic.umd.js` ファイルを含める:
 
   ```html
-  <script src="path/to/lazy-pic.js"></script>
+  <script src="path/to/lazy-pic.umd.js"></script>
+  ```
+
+1. ブラウザでは UMD グローバルを使って初期化します:
+
+  ```html
+  <script>
+    const lazyPic = new LazyPic.LazyPic({
+      selector: '.lazy-image',
+      strategy: 'data-src'
+    });
+    lazyPic.init();
+  </script>
   ```
 
 ## 🚀 クイックスタート
@@ -89,6 +101,16 @@ const lazyPic = new LazyPic({
 
 lazyPic.init();
 ```
+
+## 🌐 サンプル
+
+- [サンプル一覧](../examples/index.html)
+- [Vanilla JavaScript デモ](../examples/vanilla.html)
+- [Vue CDN デモ](../examples/vue.html)
+- [React CDN デモ](../examples/react.html)
+- [Alpine CDN デモ](../examples/alpine.html)
+
+すべてのブラウザ向けサンプルは `dist/lazy-pic.umd.js` を読み込みます。開く前に `bun run build` を実行してください。
 
 ## 📖 使用例
 
@@ -226,6 +248,12 @@ bun run preview
 ```
 
 ## 変更履歴
+
+### 0.5.0
+
+- ローカル開発コマンドを Bun に統一し、不要な Vitest ラッパーと設定ファイルを削除
+- サンプルを Vanilla JavaScript、Vue、React、Alpine の独立した CDN ページへ分割
+- ブラウザ / CDN ドキュメントを `dist/lazy-pic.umd.js` と UMD グローバル API に合わせて更新
 
 ### 0.4.0-beta
 

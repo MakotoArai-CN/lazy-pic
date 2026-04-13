@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LazyPic 0.5.0 - Svelte CDN 完整演示</title>
+
+    <!-- MDUI2 CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/mdui@2/mdui.css" />
+    <!-- Code highlight -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <!-- mdui-icons+ -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+    <style>
+        :root {
+            --md-sys-color-primary: #ff3e00;
+            --md-sys-color-on-primary: #ffffff;
+            --md-sys-color-primary-container: #ffe1d8;
+            --md-sys-color-on-primary-container: #5a1700;
+            --md-sys-color-secondary: #676778;
+            --md-sys-color-secondary-container: #e8e7ef;
+            --md-sys-color-surface: #fff8f6;
+            --md-sys-color-surface-variant: #f2e7e3;
+            --md-sys-color-on-surface: #1f1b1a;
+            --md-sys-color-on-surface-variant: #5b5553;
+            --md-sys-color-outline: #84746f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            background: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .demo-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding: 48px 24px;
+            background: linear-gradient(135deg, var(--md-sys-color-primary) 0%, var(--md-sys-color-secondary) 100%);
+            border-radius: 28px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        }
+
+        .demo-header h1 {
+            font-size: 3.5rem;
+            font-weight: 400;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .demo-header .subtitle {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .demo-header .version-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 0.875rem;
+            margin-top: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .control-panel {
+            background: var(--md-sys-color-surface-variant);
+            border-radius: 28px;
+            padding: 32px;
+            margin-bottom: 32px;
+            width: 100%;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        }
+
+        .control-section {
+            margin-bottom: 24px;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .control-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .demo-section {
+            margin-bottom: 48px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 400;
+            margin-bottom: 16px;
+            color: var(--md-sys-color-on-surface);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-subtitle {
+            color: var(--md-sys-color-on-surface-variant);
+            margin-bottom: 24px;
+            font-size: 1.125rem;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .demo-card {
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .demo-card:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.16), 0 2px 4px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            padding: 20px 24px 16px;
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .card-subtitle {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .image-preview {
+            position: relative;
+            height: 280px;
+            overflow: hidden;
+            background: #f5f5f5;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: all 0.3s ease;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status-loading {
+            background: rgba(255, 193, 7, 0.9);
+            color: #000;
+        }
+
+        .status-loaded {
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+        }
+
+        .status-error {
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+        }
+
+        .card-content {
+            padding: 20px 24px;
+        }
+
+        .card-description {
+            color: var(--md-sys-color-on-surface-variant);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .code-preview {
+            background: #2d3748;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #1a202c;
+            padding: 12px 16px;
+            border-bottom: 1px solid #4a5568;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .code-title {
+            color: #e2e8f0;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .copy-button {
+            background: transparent;
+            border: 1px solid #4a5568;
+            color: #e2e8f0;
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .copy-button:hover {
+            background: #4a5568;
+        }
+
+        .code-content {
+            padding: 16px;
+            overflow-x: auto;
+        }
+
+        .code-content pre {
+            margin: 0;
+            background: transparent !important;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin: 32px 0;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 32px 24px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .feature-description {
+            color: var(--md-sys-color-on-surface-variant);
+            line-height: 1.5;
+        }
+
+        .logs-container {
+            background: #1e1e1e;
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 24px 0;
+        }
+
+        .logs-header {
+            background: #2d2d2d;
+            padding: 12px 20px;
+            border-bottom: 1px solid #404040;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logs-title {
+            color: #ffffff;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .logs-content {
+            padding: 16px 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            color: #e2e8f0;
+        }
+
+        .log-time {
+            color: #4299e1;
+            margin-right: 8px;
+        }
+
+        .log-success {
+            color: #68d391;
+        }
+
+        .log-error {
+            color: #fc8181;
+        }
+
+        .log-warning {
+            color: #fbd38d;
+        }
+
+        .demo-tabs {
+            border-bottom: 1px solid var(--md-sys-color-outline);
+            margin-bottom: 24px;
+        }
+
+        .tab-list {
+            display: flex;
+            gap: 0;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 16px 24px;
+            cursor: pointer;
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab-button.active {
+            color: var(--md-sys-color-primary);
+            border-bottom-color: var(--md-sys-color-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .demo-card {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .demo-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .demo-card:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        @media (max-width: 768px) {
+            .demo-container {
+                padding: 16px;
+            }
+
+            .demo-header h1 {
+                font-size: 2.5rem;
+            }
+
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .control-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>Svelte + LazyPic</h1>
+            <p class="subtitle">优雅的渐进式图片加载库 · Svelte 生命周期风格 CDN 完整演示</p>
+            <span class="version-badge">Svelte CDN 风格页面 · LazyPic v0.5.0 · 完整代码示例</span>
+            <div style="margin-top: 16px; position: relative; z-index: 1; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                <a href="./index.html" style="color: white; text-decoration: none; border: 1px solid rgba(255,255,255,0.35); padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,0.08);">返回示例导航</a>
+                <a href="./vanilla.html" style="color: white; text-decoration: none; border: 1px solid rgba(255,255,255,0.35); padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,0.08);">原生 JS 示例</a>
+                <a href="./vue.html" style="color: white; text-decoration: none; border: 1px solid rgba(255,255,255,0.35); padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,0.08);">Vue 示例</a>
+                <a href="./react.html" style="color: white; text-decoration: none; border: 1px solid rgba(255,255,255,0.35); padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,0.08);">React 示例</a>
+                <a href="./alpine.html" style="color: white; text-decoration: none; border: 1px solid rgba(255,255,255,0.35); padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,0.08);">Alpine 示例</a>
+            </div>
+        </div>
+
+        <mdui-card class="control-panel">
+            <h3 style="margin-bottom: 24px; color: var(--md-sys-color-on-surface);">
+                <mdui-icon name="tune"></mdui-icon>
+                实时配置控制
+            </h3>
+
+            <div class="control-section">
+                <div class="control-grid">
+                    <mdui-select label="加载策略" id="strategy" value="animation">
+                        <mdui-menu-item value="animation">动画策略</mdui-menu-item>
+                        <mdui-menu-item value="data-src">数据源策略</mdui-menu-item>
+                    </mdui-select>
+
+                    <mdui-select label="动画类型" id="animationType" value="fade">
+                        <mdui-menu-item value="fade">淡入淡出</mdui-menu-item>
+                        <mdui-menu-item value="slide">滑动</mdui-menu-item>
+                        <mdui-menu-item value="zoom">缩放</mdui-menu-item>
+                        <mdui-menu-item value="rotate">旋转</mdui-menu-item>
+                        <mdui-menu-item value="blur">模糊</mdui-menu-item>
+                    </mdui-select>
+
+                    <mdui-select label="占位符动画" id="placeholderAnimation" value="shimmer">
+                        <mdui-menu-item value="skeleton">骨架屏</mdui-menu-item>
+                        <mdui-menu-item value="shimmer">闪烁</mdui-menu-item>
+                        <mdui-menu-item value="dots">点动画</mdui-menu-item>
+                        <mdui-menu-item value="spinner">旋转器</mdui-menu-item>
+                        <mdui-menu-item value="pulse">脉冲</mdui-menu-item>
+                        <mdui-menu-item value="wave">波浪</mdui-menu-item>
+                        <mdui-menu-item value="progress-bar">进度条</mdui-menu-item>
+                        <mdui-menu-item value="radar">雷达扫描</mdui-menu-item>
+                    </mdui-select>
+
+                    <mdui-text-field label="动画时长 (ms)" id="duration" value="1200" type="number" min="300" max="3000" step="100"></mdui-text-field>
+
+                    <mdui-select label="缓动函数" id="easing" value="ease-out">
+                        <mdui-menu-item value="ease-out">ease-out</mdui-menu-item>
+                        <mdui-menu-item value="ease-in">ease-in</mdui-menu-item>
+                        <mdui-menu-item value="ease-in-out">ease-in-out</mdui-menu-item>
+                        <mdui-menu-item value="bounce">bounce</mdui-menu-item>
+                        <mdui-menu-item value="elastic">elastic</mdui-menu-item>
+                    </mdui-select>
+                </div>
+
+                <div class="control-actions">
+                    <mdui-button variant="filled" onclick="applyConfig()">
+                        <mdui-icon slot="icon" name="rocket_launch"></mdui-icon>
+                        应用配置
+                    </mdui-button>
+                    <mdui-button variant="outlined" onclick="refreshDemo()">
+                        <mdui-icon slot="icon" name="refresh"></mdui-icon>
+                        刷新演示
+                    </mdui-button>
+                    <mdui-button variant="outlined" onclick="loadAllImages()">
+                        <mdui-icon slot="icon" name="flash_on"></mdui-icon>
+                        加载所有
+                    </mdui-button>
+                    <mdui-button variant="text" onclick="clearLogs()">
+                        <mdui-icon slot="icon" name="delete"></mdui-icon>
+                        清空日志
+                    </mdui-button>
+                </div>
+            </div>
+        </mdui-card>
+
+        <div class="demo-tabs">
+            <div class="tab-list">
+                <button class="tab-button active" onclick="switchTab('demo')">
+                    <mdui-icon name="image" style="margin-right: 8px;"></mdui-icon>
+                    功能演示
+                </button>
+                <button class="tab-button" onclick="switchTab('code')">
+                    <mdui-icon name="code" style="margin-right: 8px;"></mdui-icon>
+                    代码示例
+                </button>
+            </div>
+        </div>
+
+        <div id="demo-tab" class="tab-content active">
+            <div class="demo-section">
+                <h2 class="section-title">
+                    <mdui-icon name="animation"></mdui-icon>
+                    动画策略演示
+                </h2>
+                <p class="section-subtitle">以 Svelte 的 <code>onMount</code> / <code>onDestroy</code> 和 <code>$:</code> 响应式声明为思路，管理 LazyPic 实例的初始化与重建。</p>
+
+                <div class="demo-grid">
+                    <div class="demo-card">
+                        <div class="card-header">
+                            <div class="card-title">onMount 初始化</div>
+                            <div class="card-subtitle">组件挂载后创建实例</div>
+                        </div>
+                        <div class="image-preview">
+                            <img data-src="https://picsum.photos/800/600?random=501" class="svelte-lazy-image">
+                            <div class="status-badge status-loading">等待加载</div>
+                        </div>
+                        <div class="card-content">
+                            <p class="card-description">在 <code>onMount</code> 中创建 <code>new LazyPic.LazyPic(...)</code>，确保组件模板已经渲染完成，再交给 IntersectionObserver 接管。</p>
+                        </div>
+                    </div>
+
+                    <div class="demo-card">
+                        <div class="card-header">
+                            <div class="card-title">$: 响应式重建</div>
+                            <div class="card-subtitle">配置变化自动 destroy + init</div>
+                        </div>
+                        <div class="image-preview">
+                            <img data-src="https://picsum.photos/800/600?random=502" class="svelte-lazy-image">
+                            <div class="status-badge status-loading">等待加载</div>
+                        </div>
+                        <div class="card-content">
+                            <p class="card-description">当策略、动画类型或占位符变化时，可通过 <code>$:</code> 语句自动清理旧实例并重新初始化，让配置与 DOM 始终同步。</p>
+                        </div>
+                    </div>
+
+                    <div class="demo-card">
+                        <div class="card-header">
+                            <div class="card-title">onDestroy 清理</div>
+                            <div class="card-subtitle">组件卸载时释放资源</div>
+                        </div>
+                        <div class="image-preview">
+                            <img data-src="https://picsum.photos/800/600?random=503" class="svelte-lazy-image">
+                            <div class="status-badge status-loading">等待加载</div>
+                        </div>
+                        <div class="card-content">
+                            <p class="card-description">在 <code>onDestroy</code> 中调用 <code>destroy()</code>，避免路由切换、条件渲染或列表卸载时残留 Observer 与占位层。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2 class="section-title">
+                    <mdui-icon name="database"></mdui-icon>
+                    数据源策略演示
+                </h2>
+                <p class="section-subtitle">data-src 适合配合 Svelte 的模板语法快速输出图片列表，再由 LazyPic 接管加载与过渡。</p>
+
+                <div class="demo-grid">
+                    <div class="demo-card">
+                        <div class="card-header">
+                            <div class="card-title">模板循环输出</div>
+                            <div class="card-subtitle">{#each} 批量渲染图片</div>
+                        </div>
+                        <div class="image-preview">
+                            <img src="https://picsum.photos/400/300?random=504&blur=5" data-src="https://picsum.photos/800/600?random=504" class="svelte-data-src-image">
+                            <div class="status-badge status-loading">等待加载</div>
+                        </div>
+                        <div class="card-content">
+                            <p class="card-description">Svelte 负责使用 <code>{#each}</code> 生成结构，LazyPic 负责懒加载、模糊过渡与完成动画，职责拆分清晰。</p>
+                        </div>
+                    </div>
+
+                    <div class="demo-card">
+                        <div class="card-header">
+                            <div class="card-title">模糊到清晰</div>
+                            <div class="card-subtitle">enableBlur + blurIntensity</div>
+                        </div>
+                        <div class="image-preview">
+                            <img src="https://picsum.photos/400/300?random=505&blur=5" data-src="https://picsum.photos/800/600?random=505" class="svelte-data-src-image">
+                            <div class="status-badge status-loading">等待加载</div>
+                        </div>
+                        <div class="card-content">
+                            <p class="card-description">非常适合内容流、相册页和文档截图列表，让页面先出现低质量预览，再平滑切换到高清图。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2 class="section-title">
+                    <mdui-icon name="stars"></mdui-icon>
+                    Svelte 集成要点
+                </h2>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🧠</div>
+                        <div class="feature-title">生命周期明确</div>
+                        <div class="feature-description">onMount 初始化，onDestroy 清理，适合控制第三方 DOM 行为。</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <div class="feature-title">响应式声明自然</div>
+                        <div class="feature-description">$:
+                            可以直接表达“配置变化就重建实例”的逻辑，写法非常直观。</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🧩</div>
+                        <div class="feature-title">模板简洁</div>
+                        <div class="feature-description">{#each} 与 data-src / animation 标记组合非常自然，适合图片流场景。</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📦</div>
+                        <div class="feature-title">文档示例友好</div>
+                        <div class="feature-description">即使这个演示页用原生脚本模拟 Svelte 生命周期，代码示例仍可直接映射到真实 Svelte 项目。</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔁</div>
+                        <div class="feature-title">易于重建</div>
+                        <div class="feature-description">当动画、策略或占位样式变化时，可安全 destroy + init，不容易留下脏状态。</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🚀</div>
+                        <div class="feature-title">核心能力保持一致</div>
+                        <div class="feature-description">框架层只负责状态和生命周期，真正的加载、动画与状态统计仍由 LazyPic 内核提供。</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="code-tab" class="tab-content">
+            <div class="demo-section">
+                <h2 class="section-title">
+                    <mdui-icon name="code"></mdui-icon>
+                    代码示例
+                </h2>
+
+                <div class="code-preview">
+                    <div class="code-header">
+                        <span class="code-title">Svelte 组件 - onMount 初始化</span>
+                        <button class="copy-button" onclick="copyCode('svelte-basic')">复制</button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code id="svelte-basic" class="language-javascript">&lt;script&gt;
+  import { onMount, onDestroy } from 'svelte';
+  import { LazyPic } from 'lazy-pic';
+
+  let instance;
+
+  onMount(() =&gt; {
+    instance = new LazyPic({
+      selector: '.svelte-lazy-image',
+      strategy: 'animation',
+      animationType: 'fade',
+      animationDuration: 900,
+      placeholder: {
+        animation: 'shimmer',
+        color: '#ff3e00',
+        showText: true,
+        loadingText: 'Svelte 正在加载图片...'
+      }
+    });
+
+    instance.init();
+  });
+
+  onDestroy(() =&gt; {
+    instance?.destroy();
+  });
+&lt;/script&gt;</code></pre>
+                    </div>
+                </div>
+
+                <div class="code-preview">
+                    <div class="code-header">
+                        <span class="code-title">响应式声明 - $: 自动重建</span>
+                        <button class="copy-button" onclick="copyCode('svelte-reactive')">复制</button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code id="svelte-reactive" class="language-javascript">&lt;script&gt;
+  import { onMount, onDestroy, tick } from 'svelte';
+  import { LazyPic } from 'lazy-pic';
+
+  let instance;
+  let strategy = 'animation';
+  let placeholderAnimation = 'shimmer';
+
+  async function mountLazyPic() {
+    instance?.destroy();
+    await tick();
+
+    instance = new LazyPic({
+      selector: '.svelte-lazy-image',
+      strategy,
+      animationType: 'fade',
+      placeholder: {
+        animation: placeholderAnimation,
+        color: '#ff3e00'
+      }
+    });
+
+    instance.init();
+  }
+
+  onMount(mountLazyPic);
+
+  $: if (instance) {
+    strategy;
+    placeholderAnimation;
+    mountLazyPic();
+  }
+
+  onDestroy(() =&gt; instance?.destroy());
+&lt;/script&gt;</code></pre>
+                    </div>
+                </div>
+
+                <div class="code-preview">
+                    <div class="code-header">
+                        <span class="code-title">HTML 模板</span>
+                        <button class="copy-button" onclick="copyCode('svelte-template')">复制</button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code id="svelte-template" class="language-html">&lt;script&gt;
+  const images = [
+    { id: 1, title: '封面图', thumb: 'thumb-1.jpg', full: 'full-1.jpg' },
+    { id: 2, title: '内容图', thumb: 'thumb-2.jpg', full: 'full-2.jpg' }
+  ];
+&lt;/script&gt;
+
+{#each images as image (image.id)}
+  &lt;article class="gallery-card"&gt;
+    &lt;img
+      class="svelte-lazy-image"
+      src={image.thumb}
+      data-src={image.full}
+      alt={image.title}
+    /&gt;
+    &lt;div class="content"&gt;
+      &lt;h3&gt;{image.title}&lt;/h3&gt;
+    &lt;/div&gt;
+  &lt;/article&gt;
+{/each}</code></pre>
+                    </div>
+                </div>
+
+                <div class="code-preview">
+                    <div class="code-header">
+                        <span class="code-title">高级配置 - 动画策略</span>
+                        <button class="copy-button" onclick="copyCode('svelte-advanced')">复制</button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code id="svelte-advanced" class="language-javascript">const lazyPic = new LazyPic({
+  selector: '.svelte-lazy-image',
+  strategy: 'animation',
+  animationType: 'zoom',
+  animationDuration: 1400,
+  easing: 'ease-out',
+  completionEffect: {
+    enabled: true,
+    type: 'glow',
+    duration: 500
+  },
+  placeholder: {
+    animation: 'radar',
+    color: '#ff3e00',
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    showText: true,
+    loadingText: 'Svelte 组件正在初始化图片...'
+  },
+  onLoad: (element) =&gt; {
+    console.log('Svelte 图片加载完成', element.dataset.src || element.src);
+  }
+});</code></pre>
+                    </div>
+                </div>
+
+                <div class="code-preview">
+                    <div class="code-header">
+                        <span class="code-title">API 方法示例</span>
+                        <button class="copy-button" onclick="copyCode('svelte-api')">复制</button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code id="svelte-api" class="language-javascript">instance.init();
+
+const imageElement = document.querySelector('.svelte-lazy-image');
+await instance.loadImage(imageElement);
+
+instance.updateConfig({
+  animationType: 'slide',
+  animationDuration: 800
+});
+
+instance.refresh();
+
+const status = instance.getStatus();
+console.log(status);
+
+instance.destroy();</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="logs-container">
+            <div class="logs-header">
+                <span class="logs-title">
+                    <mdui-icon name="terminal" style="margin-right: 8px;"></mdui-icon>
+                    实时日志
+                </span>
+                <mdui-button variant="text" size="small" onclick="clearLogs()">清空</mdui-button>
+            </div>
+            <div id="logs" class="logs-content">
+                <div class="log-entry">
+                    <span class="log-time">[00:00:00]</span>
+                    <span class="log-success">Svelte 风格 LazyPic 演示页面已初始化</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/mdui@2/mdui.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../dist/lazy-pic.umd.js"></script>
+
+    <script>
+        let lazyPicInstances = [];
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.closest('.tab-button').classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tabName + '-tab').classList.add('active');
+            addLog(`切换到 ${tabName} 标签页`);
+        }
+
+        function copyCode(codeId) {
+            const code = document.getElementById(codeId);
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(code.textContent).then(() => showSnackbar('代码已复制到剪贴板'));
+            } else {
+                const ta = document.createElement('textarea');
+                ta.value = code.textContent;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showSnackbar('代码已复制到剪贴板');
+            }
+        }
+
+        function showSnackbar(message) {
+            const snackbar = Object.assign(document.createElement('mdui-snackbar'), { message, autoCloseDelay: 3000 });
+            document.body.appendChild(snackbar);
+            snackbar.open = true;
+            setTimeout(() => document.body.removeChild(snackbar), 3500);
+        }
+
+        function addLog(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const cls = { success: 'log-success', error: 'log-error', warning: 'log-warning' }[type] || '';
+            entry.innerHTML = `<span class="log-time">[${time}]</span> <span class="${cls}">${message}</span>`;
+            logs.appendChild(entry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+            addLog('日志已清空');
+        }
+
+        function updateStatus(element, status) {
+            const indicator = element.closest('.image-preview')?.querySelector('.status-badge');
+            if (indicator) {
+                indicator.className = `status-badge status-${status}`;
+                indicator.textContent = { loading: '加载中...', loaded: '已完成', error: '加载失败' }[status];
+            }
+        }
+
+        function initAnimationStrategy() {
+            const inst = new LazyPic.LazyPic({
+                selector: '.svelte-lazy-image',
+                strategy: 'animation',
+                animationType: document.getElementById('animationType').value,
+                animationDuration: parseInt(document.getElementById('duration').value),
+                easing: document.getElementById('easing').value,
+                placeholder: {
+                    animation: document.getElementById('placeholderAnimation').value,
+                    color: '#ff3e00',
+                    backgroundColor: 'rgba(248, 249, 250, 0.95)',
+                    showText: true,
+                    loadingText: 'Svelte onMount 正在初始化 LazyPic...'
+                },
+                rootMargin: '50px',
+                threshold: 0.1,
+                onStartLoad: (el) => { updateStatus(el, 'loading'); addLog(`✨ 动画策略: 开始加载 ${el.dataset.src}`); },
+                onLoad: (el) => { updateStatus(el, 'loaded'); addLog(`✅ 动画策略: 加载完成 ${el.dataset.src}`, 'success'); },
+                onError: (err, el) => { updateStatus(el, 'error'); addLog(`❌ 动画策略: 加载失败 ${err.message}`, 'error'); }
+            });
+            inst.init();
+            return inst;
+        }
+
+        function initDataSrcStrategy() {
+            const inst = new LazyPic.LazyPic({
+                selector: '.svelte-data-src-image',
+                strategy: 'data-src',
+                animationType: document.getElementById('animationType').value,
+                animationDuration: parseInt(document.getElementById('duration').value),
+                easing: document.getElementById('easing').value,
+                enableBlur: true,
+                blurIntensity: 8,
+                rootMargin: '50px',
+                threshold: 0.1,
+                onStartLoad: (el) => { updateStatus(el, 'loading'); addLog(`📊 数据源策略: 开始加载 ${el.dataset.src}`); },
+                onLoad: (el) => { updateStatus(el, 'loaded'); addLog(`✅ 数据源策略: 加载完成 ${el.dataset.src}`, 'success'); },
+                onError: (err, el) => { updateStatus(el, 'error'); addLog(`❌ 数据源策略: 加载失败 ${err.message}`, 'error'); }
+            });
+            inst.init();
+            return inst;
+        }
+
+        function applyConfig() {
+            addLog('🔧 正在应用新配置...', 'warning');
+            lazyPicInstances.forEach(inst => inst?.destroy?.());
+            lazyPicInstances = [];
+
+            document.querySelectorAll('.status-badge').forEach(b => {
+                b.className = 'status-badge status-loading';
+                b.textContent = '等待加载';
+            });
+
+            setTimeout(() => {
+                try {
+                    const mode = document.getElementById('strategy').value;
+                    if (mode === 'animation') {
+                        lazyPicInstances.push(initAnimationStrategy());
+                    } else {
+                        lazyPicInstances.push(initDataSrcStrategy());
+                    }
+                    addLog('✅ 配置应用完成，实例已重新初始化', 'success');
+                    showSnackbar('配置已应用');
+                } catch (error) {
+                    addLog(`❌ 配置应用失败: ${error.message}`, 'error');
+                }
+            }, 100);
+        }
+
+        function refreshDemo() {
+            addLog('🔄 正在刷新演示...', 'warning');
+            const ts = Date.now();
+            document.querySelectorAll('.svelte-lazy-image').forEach(img => {
+                const src = (img.dataset.src || '').split('&t=')[0];
+                img.dataset.src = src + '&t=' + ts;
+            });
+            document.querySelectorAll('.svelte-data-src-image').forEach(img => {
+                img.src = img.src.split('&t=')[0] + '&t=' + ts;
+                img.dataset.src = img.dataset.src.split('&t=')[0] + '&t=' + ts;
+            });
+            applyConfig();
+            addLog('✅ 演示刷新完成', 'success');
+        }
+
+        function loadAllImages() {
+            addLog('⚡ 开始手动加载所有图片...', 'warning');
+            document.querySelectorAll('.svelte-lazy-image, .svelte-data-src-image').forEach(el => {
+                lazyPicInstances.forEach(inst => inst?.loadImage?.(el)?.catch?.(() => undefined));
+            });
+            showSnackbar('正在加载所有图片');
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            addLog('🚀 页面已加载，开始初始化 Svelte 风格 LazyPic...', 'success');
+            setTimeout(() => {
+                try {
+                    lazyPicInstances.push(initAnimationStrategy());
+                    addLog('✅ LazyPic 实例初始化完成', 'success');
+                    addLog('💡 提示: 使用控制面板模拟 Svelte 响应式重建');
+                    addLog('🎛️ 切换策略可模拟 $: 语句驱动的 destroy + init');
+                } catch (error) {
+                    addLog(`❌ 初始化失败: ${error.message}`, 'error');
+                }
+            }, 500);
+        });
+
+        window.addEventListener('beforeunload', () => {
+            lazyPicInstances.forEach(inst => inst?.destroy?.());
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LazyPic 0.5.0 - 原生 JavaScript 完整演示</title>
+
+    <!-- MDUI2 CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/mdui@2/mdui.css" />
+    <!-- Code highlight -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <!-- mdui-icons+ -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+    <style>
+        :root {
+            --md-sys-color-primary: #6750a4;
+            --md-sys-color-on-primary: #ffffff;
+            --md-sys-color-primary-container: #eaddff;
+            --md-sys-color-on-primary-container: #21005d;
+            --md-sys-color-secondary: #625b71;
+            --md-sys-color-secondary-container: #e8def8;
+            --md-sys-color-surface: #fef7ff;
+            --md-sys-color-surface-variant: #e7e0ec;
+            --md-sys-color-on-surface-variant: #49454f;
+            --md-sys-color-outline: #79747e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            background: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .demo-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Header */
+        .demo-header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding: 48px 24px;
+            background: linear-gradient(135deg, var(--md-sys-color-primary) 0%, var(--md-sys-color-secondary) 100%);
+            border-radius: 28px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        }
+
+        .demo-header h1 {
+            font-size: 3.5rem;
+            font-weight: 400;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .demo-header .subtitle {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .demo-header .version-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 0.875rem;
+            margin-top: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: var(--md-sys-color-surface-variant);
+            border-radius: 28px;
+            padding: 32px;
+            margin-bottom: 32px;
+            width: 100%;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        }
+
+        .control-section {
+            margin-bottom: 24px;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .control-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* Cards */
+        .demo-section {
+            margin-bottom: 48px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 400;
+            margin-bottom: 16px;
+            color: var(--md-sys-color-on-surface);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-subtitle {
+            color: var(--md-sys-color-on-surface-variant);
+            margin-bottom: 24px;
+            font-size: 1.125rem;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .demo-card {
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .demo-card:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.16), 0 2px 4px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            padding: 20px 24px 16px;
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .card-subtitle {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .image-preview {
+            position: relative;
+            height: 280px;
+            overflow: hidden;
+            background: #f5f5f5;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: all 0.3s ease;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status-loading {
+            background: rgba(255, 193, 7, 0.9);
+            color: #000;
+        }
+
+        .status-loaded {
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+        }
+
+        .status-error {
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+        }
+
+        .card-content {
+            padding: 20px 24px;
+        }
+
+        .card-description {
+            color: var(--md-sys-color-on-surface-variant);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        /* Code Preview */
+        .code-preview {
+            background: #2d3748;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #1a202c;
+            padding: 12px 16px;
+            border-bottom: 1px solid #4a5568;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .code-title {
+            color: #e2e8f0;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .copy-button {
+            background: transparent;
+            border: 1px solid #4a5568;
+            color: #e2e8f0;
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .copy-button:hover {
+            background: #4a5568;
+        }
+
+        .code-content {
+            padding: 16px;
+            overflow-x: auto;
+        }
+
+        .code-content pre {
+            margin: 0;
+            background: transparent !important;
+        }
+
+        /* Progress Effect Preview */
+        .progress-preview {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 16px 0;
+            border: 1px solid var(--md-sys-color-outline);
+        }
+
+        .progress-stages {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .stage {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .stage-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--md-sys-color-surface-variant);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+            transition: all 0.3s;
+            font-size: 1.2rem;
+        }
+
+        .stage.active .stage-circle {
+            background: var(--md-sys-color-primary);
+            color: white;
+        }
+
+        .stage-label {
+            font-size: 0.75rem;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        .stage::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: calc(100% - 8px);
+            width: 16px;
+            height: 2px;
+            background: var(--md-sys-color-outline);
+        }
+
+        .stage:last-child::after {
+            display: none;
+        }
+
+        .preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+        }
+
+        .mini-preview {
+            aspect-ratio: 16/10;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            background: #f0f0f0;
+        }
+
+        .mini-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .mini-preview .stage-label {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+        }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin: 32px 0;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 32px 24px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .feature-description {
+            color: var(--md-sys-color-on-surface-variant);
+            line-height: 1.5;
+        }
+
+        /* Logs */
+        .logs-container {
+            background: #1e1e1e;
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 24px 0;
+        }
+
+        .logs-header {
+            background: #2d2d2d;
+            padding: 12px 20px;
+            border-bottom: 1px solid #404040;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logs-title {
+            color: #ffffff;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .logs-content {
+            padding: 16px 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            color: #e2e8f0;
+        }
+
+        .log-time {
+            color: #4299e1;
+            margin-right: 8px;
+        }
+
+        .log-success {
+            color: #68d391;
+        }
+
+        .log-error {
+            color: #fc8181;
+        }
+
+        .log-warning {
+            color: #fbd38d;
+        }
+
+        /* Custom Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .demo-card {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .demo-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .demo-card:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .demo-card:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .demo-container {
+                padding: 16px;
+            }
+
+            .demo-header h1 {
+                font-size: 2.5rem;
+            }
+
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .control-actions {
+                justify-content: center;
+            }
+        }
+
+        /* Tabs */
+        .demo-tabs {
+            border-bottom: 1px solid var(--md-sys-color-outline);
+            margin-bottom: 24px;
+        }
+
+        .tab-list {
+            display: flex;
+            gap: 0;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 16px 24px;
+            cursor: pointer;
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab-button.active {
+            color: var(--md-sys-color-primary);
+            border-bottom-color: var(--md-sys-color-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="demo-container">
+        <!-- Header -->
+        <div class="demo-header">
+            <h1>🖼️ LazyPic</h1>
+            <p class="subtitle">优雅的渐进式图片加载库 · 原生 JavaScript 完整演示</p>
+            <span class="version-badge">v0.5.0</span>
+            <div style="margin-top: 16px; position: relative; z-index: 1; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                <a href="./index.html" style="color: white; text-decoration: none; border: 1px solid rgba(255,255,255,0.35); padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,0.08);">返回示例导航</a>
+                <a href="./vue.html" style="color: white; text-decoration: none; border: 1px solid rgba(255,255,255,0.35); padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,0.08);">Vue 示例</a>
+                <a href="./react.html" style="color: white; text-decoration: none; border: 1px solid rgba(255,255,255,0.35); padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,0.08);">React 示例</a>
+                <a href="./alpine.html" style="color: white; text-decoration: none; border: 1px solid rgba(255,255,255,0.35); padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,0.08);">Alpine 示例</a>
+                <a href="./svelte.html" style="color: white; text-decoration: none; border: 1px solid rgba(255,255,255,0.35); padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,0.08);">Svelte 示例</a>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <mdui-card class="control-panel">
+            <h3 style="margin-bottom: 24px; color: var(--md-sys-color-on-surface);">
+                <mdui-icon name="tune"></mdui-icon>
+                实时配置控制
+            </h3>
+
+            <div class="control-section">
+                <div class="control-grid">
+                    <mdui-select label="加载策略" id="strategy" value="dual-image">
+                        <mdui-menu-item value="dual-image">双图片策略</mdui-menu-item>
+                        <mdui-menu-item value="data-src">数据源策略</mdui-menu-item>
+                        <mdui-menu-item value="animation">动画策略</mdui-menu-item>
+                    </mdui-select>
+
+                    <mdui-select label="动画类型" id="animationType" value="fade">
+                        <mdui-menu-item value="fade">淡入淡出</mdui-menu-item>
+                        <mdui-menu-item value="slide">滑动</mdui-menu-item>
+                        <mdui-menu-item value="zoom">缩放</mdui-menu-item>
+                        <mdui-menu-item value="rotate">旋转</mdui-menu-item>
+                        <mdui-menu-item value="blur">模糊</mdui-menu-item>
+                    </mdui-select>
+
+                    <mdui-select label="占位符动画" id="placeholderAnimation" value="skeleton">
+                        <mdui-menu-item value="skeleton">骨架屏</mdui-menu-item>
+                        <mdui-menu-item value="shimmer">闪烁</mdui-menu-item>
+                        <mdui-menu-item value="dots">点动画</mdui-menu-item>
+                        <mdui-menu-item value="spinner">旋转器</mdui-menu-item>
+                        <mdui-menu-item value="pulse">脉冲</mdui-menu-item>
+                        <mdui-menu-item value="wave">波浪</mdui-menu-item>
+                        <mdui-menu-item value="progress-bar">进度条</mdui-menu-item>
+                        <mdui-menu-item value="skeleton-lines">骨架行</mdui-menu-item>
+                        <mdui-menu-item value="diagonal-shimmer">斜向闪烁</mdui-menu-item>
+                        <mdui-menu-item value="orbit">轨道环</mdui-menu-item>
+                        <mdui-menu-item value="grid">网格块</mdui-menu-item>
+                        <mdui-menu-item value="typing">打字动画</mdui-menu-item>
+                        <mdui-menu-item value="bars">柱状波形</mdui-menu-item>
+                        <mdui-menu-item value="arc">弧形旋转</mdui-menu-item>
+                        <mdui-menu-item value="wave-dots">波浪圆点</mdui-menu-item>
+                        <mdui-menu-item value="scanner">扫描线</mdui-menu-item>
+                        <mdui-menu-item value="radar">雷达扫描</mdui-menu-item>
+                        <mdui-menu-item value="shine">高光扫过</mdui-menu-item>
+                        <mdui-menu-item value="pulse-ring">脉冲环</mdui-menu-item>
+                        <mdui-menu-item value="cube">立方体</mdui-menu-item>
+                        <mdui-menu-item value="equalizer">均衡器</mdui-menu-item>
+                        <mdui-menu-item value="blink">眨眼</mdui-menu-item>
+                        <mdui-menu-item value="ladder">阶梯流</mdui-menu-item>
+                        <mdui-menu-item value="flow">流动胶囊</mdui-menu-item>
+                    </mdui-select>
+
+                    <mdui-text-field label="动画时长 (ms)" id="duration" value="1200" type="number" min="300" max="3000"
+                        step="100"></mdui-text-field>
+
+                    <mdui-select label="缓动函数" id="easing" value="ease-out">
+                        <mdui-menu-item value="ease-out">ease-out</mdui-menu-item>
+                        <mdui-menu-item value="ease-in">ease-in</mdui-menu-item>
+                        <mdui-menu-item value="ease-in-out">ease-in-out</mdui-menu-item>
+                        <mdui-menu-item value="bounce">bounce</mdui-menu-item>
+                        <mdui-menu-item value="elastic">elastic</mdui-menu-item>
+                    </mdui-select>
+                </div>
+
+                <div class="control-actions">
+                    <mdui-button variant="filled" onclick="applyConfig()">
+                        <mdui-icon slot="icon" name="rocket_launch"></mdui-icon>
+                        应用配置
+                    </mdui-button>
+                    <mdui-button variant="outlined" onclick="refreshDemo()">
+                        <mdui-icon slot="icon" name="refresh"></mdui-icon>
+                        刷新演示
+                    </mdui-button>
+                    <mdui-button variant="outlined" onclick="loadAllImages()">
+                        <mdui-icon slot="icon" name="flash_on"></mdui-icon>
+                        加载所有
+                    </mdui-button>
+                    <mdui-button variant="text" onclick="clearLogs()">
+                        <mdui-icon slot="icon" name="delete"></mdui-icon>
+                        清空日志
+                    </mdui-button>
+                </div>
+            </div>
+        </mdui-card>
+
+        <!-- Tabs -->
+        <div class="demo-tabs">
+            <div class="tab-list">
+                <button class="tab-button active" onclick="switchTab('demo')">
+                    <mdui-icon name="image" style="margin-right: 8px;"></mdui-icon>
+                    功能演示
+                </button>
+                <button class="tab-button" onclick="switchTab('code')">
+                    <mdui-icon name="code" style="margin-right: 8px;"></mdui-icon>
+                    代码示例
+                </button>
+                <button class="tab-button" onclick="switchTab('progress')">
+                    <mdui-icon name="timeline" style="margin-right: 8px;"></mdui-icon>
+                    渐进式预览
+                </button>
+            </div>
+        </div>
+
+        <!-- Demo Tab -->
+        <div id="demo-tab" class="tab-content active">
+            <!-- Dual Image Strategy -->
+            <div class="demo-section">
+                <h2 class="section-title">
+                    <mdui-icon name="layers"></mdui-icon>
+                    双图片策略演示
+                </h2>
+                <p class="section-subtitle">缩略图与高清图的优雅过渡，提供最佳用户体验</p>
+
+                <div class="demo-grid">
+                    <div class="demo-card">
+                        <div class="card-header">
+                            <div class="card-title">🌅 风景照片</div>
+                            <div class="card-subtitle">自然风光摄影</div>
+                        </div>
+                        <div class="image-preview">
+                            <img src="https://picsum.photos/400/300?random=1&blur=2" class="thumbnail"
+                                style="position: absolute; width: 100%; height: 100%;">
+                            <img src="https://picsum.photos/800/600?random=1" class="dual-image"
+                                style="position: relative; z-index: 2;">
+                            <div class="status-badge status-loading">等待加载</div>
+                        </div>
+                        <div class="card-content">
+                            <p class="card-description">
+                                展示从低质量缩略图到高清图片的平滑过渡效果，提供即时视觉反馈的同时确保最终的高质量显示。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="demo-card">
+                        <div class="card-header">
+                            <div class="card-title">🏢 建筑摄影</div>
+                            <div class="card-subtitle">现代建筑设计</div>
+                        </div>
+                        <div class="image-preview">
+                            <img src="https://picsum.photos/400/300?random=2&blur=2" class="thumbnail"
+                                style="position: absolute; width: 100%; height: 100%;">
+                            <img src="https://picsum.photos/800/600?random=2" class="dual-image"
+                                style="position: relative; z-index: 2;">
+                            <div class="status-badge status-loading">等待加载</div>
+                        </div>
+                        <div class="card-content">
+                            <p class="card-description">
+                                建筑摄影需要清晰的线条和细节，双图片策略确保在加载过程中维持视觉连续性。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="demo-card">
+                        <div class="card-header">
+                            <div class="card-title">🌊 海洋景观</div>
+                            <div class="card-subtitle">波澜壮阔的海景</div>
+                        </div>
+                        <div class="image-preview">
+                            <img src="https://picsum.photos/400/300?random=3&blur=2" class="thumbnail"
+                                style="position: absolute; width: 100%; height: 100%;">
+                            <img src="https://picsum.photos/800/600?random=3" class="dual-image"
+                                style="position: relative; z-index: 2;">
+                            <div class="status-badge status-loading">等待加载</div>
+                        </div>
+                        <div class="card-content">
+                            <p class="card-description">
+                                海洋的动态美需要高清晰度来展现，渐进式加载让用户能够立即感受到图片的内容。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data-src Strategy -->
+            <div class="demo-section">
+                <h2 class="section-title">
+                    <mdui-icon name="database"></mdui-icon>
+                    数据源策略演示
+                </h2>
+                <p class="section-subtitle">使用 data-src 属性实现的懒加载，支持模糊到清晰的过渡效果</p>
+
+                <div class="demo-grid">
+                    <div class="demo-card">
+                        <div class="card-header">
+                            <div class="card-title">🎨 艺术作品</div>
+                            <div class="card-subtitle">现代艺术展示</div>
+                        </div>
+                        <div class="image-preview">
+                            <img src="https://picsum.photos/400/300?random=4&blur=5"
+                                data-src="https://picsum.photos/800/600?random=4" class="data-src-image">
+                            <div class="status-badge status-loading">等待加载</div>
+                        </div>
+                        <div class="card-content">
+                            <p class="card-description">
+                                艺术作品从模糊的印象逐渐清晰，就像视觉焦点的调整过程，带来独特的观看体验。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="demo-card">
+                        <div class="card-header">
+                            <div class="card-title">🚗 交通工具</div>
+                            <div class="card-subtitle">现代交通设计</div>
+                        </div>
+                        <div class="image-preview">
+                            <img src="https://picsum.photos/400/300?random=5&blur=5"
+                                data-src="https://picsum.photos/800/600?random=5" class="data-src-image">
+                            <div class="status-badge status-loading">等待加载</div>
+                        </div>
+                        <div class="card-content">
+                            <p class="card-description">
+                                交通工具的流线型设计在模糊到清晰的过渡中展现出动感的美学效果。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Animation Strategy -->
+            <div class="demo-section">
+                <h2 class="section-title">
+                    <mdui-icon name="animation"></mdui-icon>
+                    动画策略演示
+                </h2>
+                <p class="section-subtitle">丰富的占位符动画效果，让等待变得有趣</p>
+
+                <div class="demo-grid">
+                    <div class="demo-card">
+                        <div class="card-header">
+                            <div class="card-title">🏔️ 山川景色</div>
+                            <div class="card-subtitle">壮丽山脉风光</div>
+                        </div>
+                        <div class="image-preview">
+                            <img data-src="https://picsum.photos/800/600?random=7" class="animation-image">
+                            <div class="status-badge status-loading">等待加载</div>
+                        </div>
+                        <div class="card-content">
+                            <p class="card-description">
+                                山川的雄伟通过骨架屏动画得到预告，增强用户的期待感和参与度。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="demo-card">
+                        <div class="card-header">
+                            <div class="card-title">🌆 都市夜景</div>
+                            <div class="card-subtitle">繁华都市灯火</div>
+                        </div>
+                        <div class="image-preview">
+                            <img data-src="https://picsum.photos/800/600?random=8" class="animation-image">
+                            <div class="status-badge status-loading">等待加载</div>
+                        </div>
+                        <div class="card-content">
+                            <p class="card-description">
+                                都市夜景的璀璨光芒，配合闪烁动画营造出科技感和现代感。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="demo-section">
+                <h2 class="section-title">
+                    <mdui-icon name="stars"></mdui-icon>
+                    核心特性
+                </h2>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🚀</div>
+                        <div class="feature-title">高性能</div>
+                        <div class="feature-description">
+                            TypeScript + 现代浏览器API，零依赖实现，优化的内存管理
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">🎨</div>
+                        <div class="feature-title">丰富动画</div>
+                        <div class="feature-description">
+                            8+ 动画类型，9+ 占位符效果，自定义缓动函数
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">📱</div>
+                        <div class="feature-title">响应式设计</div>
+                        <div class="feature-description">
+                            完美适配各种设备尺寸，支持高分辨率屏幕
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <div class="feature-title">策略模式</div>
+                        <div class="feature-description">
+                            3种加载策略，满足不同场景的需求
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">🔧</div>
+                        <div class="feature-title">灵活配置</div>
+                        <div class="feature-description">
+                            丰富的自定义选项，强大的API接口
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <div class="feature-title">优雅过渡</div>
+                        <div class="feature-description">
+                            流畅的加载体验，无缝的视觉过渡
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Code Tab -->
+        <div id="code-tab" class="tab-content">
+            <div class="demo-section">
+                <h2 class="section-title">
+                    <mdui-icon name="code"></mdui-icon>
+                    代码示例
+                </h2>
+
+                <div class="code-preview">
+                    <div class="code-header">
+                        <span class="code-title">基础使用 - ES Modules</span>
+                        <button class="copy-button" onclick="copyCode('basic-usage')">复制</button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code id="basic-usage" class="language-javascript">import { LazyPic } from 'lazy-pic';
+
+const lazyPic = new LazyPic({
+  selector: '.lazy-image',
+  strategy: 'data-src',
+  animationType: 'fade',
+  animationDuration: 1000,
+  enableBlur: true,
+  blurIntensity: 8
+});
+
+lazyPic.init();</code></pre>
+                    </div>
+                </div>
+
+                <div class="code-preview">
+                    <div class="code-header">
+                        <span class="code-title">双图片策略配置</span>
+                        <button class="copy-button" onclick="copyCode('dual-image-config')">复制</button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code id="dual-image-config" class="language-javascript">const lazyPic = new LazyPic({
+  selector: '.main-image',
+  strategy: 'dual-image',
+  animationType: 'slide',
+  animationDuration: 1200,
+  easing: 'ease-out',
+  completionEffect: { enabled: false },
+  rootMargin: '100px',
+  threshold: 0.1,
+  onStartLoad: (element) => {
+    console.log('开始加载:', element.src);
+  },
+  onLoad: (element) => {
+    console.log('加载完成:', element.src);
+  },
+  onError: (error, element) => {
+    console.error('加载失败:', error.message);
+  }
+});</code></pre>
+                    </div>
+                </div>
+
+                <div class="code-preview">
+                    <div class="code-header">
+                        <span class="code-title">HTML 结构示例</span>
+                        <button class="copy-button" onclick="copyCode('html-structure')">复制</button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code id="html-structure" class="language-html"><!-- 双图片策略 -->
+&lt;div style="position: relative"&gt;
+  &lt;img src="thumbnail.jpg" class="thumbnail" style="position: absolute; width: 100%;"&gt;
+  &lt;img src="full-image.jpg" class="main-image"&gt;
+&lt;/div&gt;
+
+<!-- 数据源策略 -->
+&lt;img src="thumbnail.jpg" data-src="full-image.jpg" class="lazy-image"&gt;
+
+<!-- 动画策略 -->
+&lt;div&gt;
+  &lt;img data-src="image.jpg" class="animated-image"&gt;
+&lt;/div&gt;</code></pre>
+                    </div>
+                </div>
+
+                <div class="code-preview">
+                    <div class="code-header">
+                        <span class="code-title">高级配置示例</span>
+                        <button class="copy-button" onclick="copyCode('advanced-config')">复制</button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code id="advanced-config" class="language-javascript">const lazyPic = new LazyPic({
+  selector: '.animated-image',
+  strategy: 'animation',
+  animationType: 'zoom',
+  animationDuration: 1500,
+  easing: 'elastic',
+  completionEffect: {
+    enabled: true,
+    type: 'glow',
+    duration: 600
+  },
+  placeholder: {
+    animation: 'shimmer',
+    color: '#667eea',
+    backgroundColor: 'rgba(248, 249, 250, 0.95)',
+    showText: true,
+    loadingText: '正在加载精美图片...',
+    customContent: 'Loading preview'
+  }
+});</code></pre>
+                    </div>
+                </div>
+
+                <div class="code-preview">
+                    <div class="code-header">
+                        <span class="code-title">API 方法示例</span>
+                        <button class="copy-button" onclick="copyCode('api-methods')">复制</button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code id="api-methods" class="language-javascript">// 初始化
+lazyPic.init();
+
+// 手动加载特定图片
+const imageElement = document.querySelector('.specific-image');
+lazyPic.loadImage(imageElement);
+
+// 更新配置
+lazyPic.updateConfig({
+  animationType: 'slide',
+  animationDuration: 800
+});
+
+// 刷新并重新扫描元素
+lazyPic.refresh();
+
+// 获取当前状态
+const status = lazyPic.getStatus();
+console.log('加载状态:', status);
+
+// 销毁实例
+lazyPic.destroy();</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Tab -->
+        <div id="progress-tab" class="tab-content">
+            <div class="demo-section">
+                <h2 class="section-title">
+                    <mdui-icon name="timeline"></mdui-icon>
+                    渐进式加载效果预览
+                </h2>
+
+                <div class="progress-preview">
+                    <h3 style="margin-bottom: 20px; color: var(--md-sys-color-on-surface);">加载过程演示</h3>
+
+                    <div class="progress-stages">
+                        <div class="stage active">
+                            <div class="stage-circle">📱</div>
+                            <div class="stage-label">初始状态</div>
+                        </div>
+                        <div class="stage">
+                            <div class="stage-circle">⏳</div>
+                            <div class="stage-label">开始加载</div>
+                        </div>
+                        <div class="stage">
+                            <div class="stage-circle">🎨</div>
+                            <div class="stage-label">渐进显示</div>
+                        </div>
+                        <div class="stage">
+                            <div class="stage-circle">✨</div>
+                            <div class="stage-label">加载完成</div>
+                        </div>
+                    </div>
+
+                    <div class="preview-container">
+                        <div class="mini-preview">
+                            <img src="https://picsum.photos/300/200?random=101&blur=5" alt="模糊占位符">
+                            <div class="stage-label">模糊占位符</div>
+                        </div>
+                        <div class="mini-preview">
+                            <img src="https://picsum.photos/300/200?random=101&blur=2" alt="低质量图片">
+                            <div class="stage-label">低质量图片</div>
+                        </div>
+                        <div class="mini-preview">
+                            <img src="https://picsum.photos/600/400?random=101" alt="高质量图片" style="opacity: 0.7;">
+                            <div class="stage-label">渐进加载中</div>
+                        </div>
+                        <div class="mini-preview">
+                            <img src="https://picsum.photos/800/600?random=101" alt="最终图片">
+                            <div class="stage-label">最终图片</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-preview">
+                    <h3 style="margin-bottom: 20px; color: var(--md-sys-color-on-surface);">动画效果对比</h3>
+
+                    <div class="preview-container" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                        <div class="mini-preview" style="aspect-ratio: 1;">
+                            <div
+                                style="width: 100%; height: 100%; background: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; animation: shimmer 2s infinite linear;">
+                            </div>
+                            <div class="stage-label">Shimmer 效果</div>
+                        </div>
+                        <div class="mini-preview" style="aspect-ratio: 1;">
+                            <div
+                                style="width: 100%; height: 100%; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: skeleton 2s infinite ease-in-out;">
+                            </div>
+                            <div class="stage-label">Skeleton 效果</div>
+                        </div>
+                        <div class="mini-preview" style="aspect-ratio: 1;">
+                            <div
+                                style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
+                                <div
+                                    style="width: 40px; height: 40px; border: 4px solid #e3e3e3; border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite;">
+                                </div>
+                            </div>
+                            <div class="stage-label">Spinner 效果</div>
+                        </div>
+                        <div class="mini-preview" style="aspect-ratio: 1;">
+                            <div
+                                style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f8f9fa; gap: 8px;">
+                                <div
+                                    style="width: 8px; height: 8px; background: #667eea; border-radius: 50%; animation: bounce 1.4s ease-in-out infinite both; animation-delay: -0.32s;">
+                                </div>
+                                <div
+                                    style="width: 8px; height: 8px; background: #667eea; border-radius: 50%; animation: bounce 1.4s ease-in-out infinite both; animation-delay: -0.16s;">
+                                </div>
+                                <div
+                                    style="width: 8px; height: 8px; background: #667eea; border-radius: 50%; animation: bounce 1.4s ease-in-out infinite both;">
+                                </div>
+                            </div>
+                            <div class="stage-label">Dots 效果</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs -->
+        <div class="logs-container">
+            <div class="logs-header">
+                <span class="logs-title">
+                    <mdui-icon name="terminal" style="margin-right: 8px;"></mdui-icon>
+                    实时日志
+                </span>
+                <mdui-button variant="text" size="small" onclick="clearLogs()">清空</mdui-button>
+            </div>
+            <div id="logs" class="logs-content">
+                <div class="log-entry">
+                    <span class="log-time">[00:00:00]</span>
+                    <span class="log-success">LazyPic 演示页面已初始化</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/mdui@2/mdui.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../dist/lazy-pic.umd.js"></script>
+
+    <style>
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        @keyframes skeleton {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+    </style>
+
+    <script>
+        // 全局变量
+        let lazyPicInstances = [];
+        let currentTab = 'demo';
+
+        // Tab 切换功能
+        function switchTab(tabName) {
+            // 更新按钮状态
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 更新内容显示
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName + '-tab').classList.add('active');
+
+            currentTab = tabName;
+            addLog(`切换到 ${tabName} 标签页`);
+        }
+
+        // 代码复制功能
+        function copyCode(codeId) {
+            const code = document.getElementById(codeId);
+            const text = code.textContent;
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showSnackbar('代码已复制到剪贴板');
+                });
+            } else {
+                // 降级方案
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showSnackbar('代码已复制到剪贴板');
+            }
+        }
+
+        // 显示提示消息
+        function showSnackbar(message) {
+            const snackbar = Object.assign(document.createElement('mdui-snackbar'), {
+                message: message,
+                autoCloseDelay: 3000
+            });
+            document.body.appendChild(snackbar);
+            snackbar.open = true;
+
+            setTimeout(() => {
+                document.body.removeChild(snackbar);
+            }, 3500);
+        }
+
+        // 日志功能
+        function addLog(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const time = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+
+            let className = '';
+            switch (type) {
+                case 'success':
+                    className = 'log-success';
+                    break;
+                case 'error':
+                    className = 'log-error';
+                    break;
+                case 'warning':
+                    className = 'log-warning';
+                    break;
+                default:
+                    className = '';
+            }
+
+            logEntry.innerHTML = `
+                <span class="log-time">[${time}]</span> 
+                <span class="${className}">${message}</span>
+            `;
+            logs.appendChild(logEntry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+            addLog('日志已清空');
+        }
+
+        // 状态指示器更新
+        function updateStatus(element, status) {
+            const indicator = element.parentElement.querySelector('.status-badge');
+            if (indicator) {
+                indicator.className = `status-badge status-${status}`;
+                indicator.textContent = {
+                    loading: '加载中...',
+                    loaded: '已完成',
+                    error: '加载失败'
+                }[status];
+            }
+        }
+
+        // 初始化双图片策略
+        function initDualImageStrategy() {
+            const dualImageLazy = new LazyPic.LazyPic({
+                selector: '.dual-image',
+                strategy: 'dual-image',
+                animationType: document.getElementById('animationType').value,
+                animationDuration: parseInt(document.getElementById('duration').value),
+                easing: document.getElementById('easing').value,
+                rootMargin: '100px',
+                threshold: 0.1,
+                onStartLoad: (element) => {
+                    updateStatus(element, 'loading');
+                    addLog(`🎭 双图片策略: 开始加载 ${element.src}`);
+                },
+                onLoad: (element) => {
+                    updateStatus(element, 'loaded');
+                    addLog(`✅ 双图片策略: 加载完成 ${element.src}`, 'success');
+                },
+                onError: (error, element) => {
+                    updateStatus(element, 'error');
+                    addLog(`❌ 双图片策略: 加载失败 ${error.message}`, 'error');
+                }
+            });
+            dualImageLazy.init();
+            return dualImageLazy;
+        }
+
+        // 初始化数据源策略
+        function initDataSrcStrategy() {
+            const dataSrcLazy = new LazyPic.LazyPic({
+                selector: '.data-src-image',
+                strategy: 'data-src',
+                animationType: document.getElementById('animationType').value,
+                animationDuration: parseInt(document.getElementById('duration').value),
+                easing: document.getElementById('easing').value,
+                enableBlur: true,
+                blurIntensity: 8,
+                rootMargin: '50px',
+                threshold: 0.1,
+                onStartLoad: (element) => {
+                    updateStatus(element, 'loading');
+                    addLog(`📊 数据源策略: 开始加载 ${element.dataset.src}`);
+                },
+                onLoad: (element) => {
+                    updateStatus(element, 'loaded');
+                    addLog(`✅ 数据源策略: 加载完成 ${element.dataset.src}`, 'success');
+                },
+                onError: (error, element) => {
+                    updateStatus(element, 'error');
+                    addLog(`❌ 数据源策略: 加载失败 ${error.message}`, 'error');
+                }
+            });
+            dataSrcLazy.init();
+            return dataSrcLazy;
+        }
+
+        // 初始化动画策略
+        function initAnimationStrategy() {
+            const animationLazy = new LazyPic.LazyPic({
+                selector: '.animation-image',
+                strategy: 'animation',
+                animationType: document.getElementById('animationType').value,
+                animationDuration: parseInt(document.getElementById('duration').value),
+                easing: document.getElementById('easing').value,
+                placeholder: {
+                    animation: document.getElementById('placeholderAnimation').value,
+                    color: '#667eea',
+                    backgroundColor: 'rgba(248, 249, 250, 0.95)',
+                    showText: true,
+                    loadingText: '正在加载精美图片...'
+                },
+                rootMargin: '50px',
+                threshold: 0.1,
+                onStartLoad: (element) => {
+                    updateStatus(element, 'loading');
+                    addLog(`✨ 动画策略: 开始加载 ${element.dataset.src}`);
+                },
+                onLoad: (element) => {
+                    updateStatus(element, 'loaded');
+                    addLog(`✅ 动画策略: 加载完成 ${element.dataset.src}`, 'success');
+                },
+                onError: (error, element) => {
+                    updateStatus(element, 'error');
+                    addLog(`❌ 动画策略: 加载失败 ${error.message}`, 'error');
+                }
+            });
+            animationLazy.init();
+            return animationLazy;
+        }
+
+        // 应用配置
+        function applyConfig() {
+            addLog('🔧 正在应用新配置...', 'warning');
+
+            // 销毁现有实例
+            lazyPicInstances.forEach(instance => {
+                if (instance && typeof instance.destroy === 'function') {
+                    instance.destroy();
+                }
+            });
+            lazyPicInstances = [];
+
+            // 重置所有状态指示器
+            document.querySelectorAll('.status-badge').forEach(indicator => {
+                indicator.className = 'status-badge status-loading';
+                indicator.textContent = '等待加载';
+            });
+
+            // 重新初始化
+            setTimeout(() => {
+                try {
+                    lazyPicInstances.push(initDualImageStrategy());
+                    lazyPicInstances.push(initDataSrcStrategy());
+                    lazyPicInstances.push(initAnimationStrategy());
+
+                    addLog('✅ 配置应用完成，所有实例已重新初始化', 'success');
+                    showSnackbar('配置已应用');
+                } catch (error) {
+                    addLog(`❌ 配置应用失败: ${error.message}`, 'error');
+                }
+            }, 100);
+        }
+
+        // 刷新演示
+        function refreshDemo() {
+            addLog('🔄 正在刷新演示...', 'warning');
+
+            // 为所有图片添加时间戳以强制重新加载
+            const timestamp = Date.now();
+
+            document.querySelectorAll('.dual-image').forEach(img => {
+                const originalSrc = img.src.split('&t=')[0];
+                img.src = originalSrc + '&t=' + timestamp;
+            });
+
+            document.querySelectorAll('.data-src-image, .animation-image').forEach(img => {
+                const originalSrc = img.dataset.src.split('&t=')[0];
+                img.dataset.src = originalSrc + '&t=' + timestamp;
+            });
+
+            // 重新应用配置
+            applyConfig();
+
+            addLog('✅ 演示刷新完成', 'success');
+        }
+
+        // 手动加载所有图片
+        function loadAllImages() {
+            addLog('⚡ 开始手动加载所有图片...', 'warning');
+
+            const loadPromises = [];
+            document.querySelectorAll('.dual-image, .data-src-image, .animation-image').forEach((element) => {
+                lazyPicInstances.forEach((instance) => {
+                    if (instance && typeof instance.loadImage === 'function') {
+                        loadPromises.push(instance.loadImage(element).catch(() => undefined));
+                    }
+                });
+            });
+
+            Promise.all(loadPromises).then(() => {
+                addLog('📤 所有图片加载请求已发送', 'success');
+                showSnackbar('正在加载所有图片');
+            });
+        }
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function () {
+            addLog('🚀 页面已加载，开始初始化 LazyPic...', 'success');
+
+            // 等待 MDUI 组件初始化
+            setTimeout(() => {
+                try {
+                    lazyPicInstances.push(initDualImageStrategy());
+                    lazyPicInstances.push(initDataSrcStrategy());
+                    lazyPicInstances.push(initAnimationStrategy());
+
+                    addLog('✅ 所有 LazyPic 实例初始化完成', 'success');
+                    addLog('💡 提示: 滚动页面查看懒加载效果');
+                    addLog('🎛️ 使用控制面板调整配置');
+                } catch (error) {
+                    addLog(`❌ 初始化失败: ${error.message}`, 'error');
+                }
+            }, 500);
+        });
+
+        // 滚动监听
+        let scrollTimer;
+        window.addEventListener('scroll', function () {
+            clearTimeout(scrollTimer);
+            scrollTimer = setTimeout(() => {
+                const scrollPercent = Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
+                if (scrollPercent > 0 && scrollPercent % 25 === 0) {
+                    addLog(`📍 页面滚动至 ${scrollPercent}%`);
+                }
+            }, 1000);
+        });
+
+        // 性能监控
+        if (window.PerformanceObserver) {
+            const observer = new PerformanceObserver((list) => {
+                for (const entry of list.getEntries()) {
+                    if (entry.entryType === 'measure' && entry.duration > 10) {
+                        addLog(`⏱️ 性能测量: ${entry.name} - ${Math.round(entry.duration)}ms`);
+                    }
+                }
+            });
+            observer.observe({ entryTypes: ['measure'] });
+        }
+    </script>
+</body>
+
+</html>

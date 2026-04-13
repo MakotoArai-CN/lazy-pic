@@ -27,8 +27,27 @@ export class LazyPic implements LazyPicInstance {
       easing: 'ease-out',
       rootMargin: '50px',
       threshold: 0.1,
+      completionEffect: { enabled: false, type: 'none' },
       ...config
     };
+
+    if (config.legacyStrategy) {
+      console.warn(`LazyPic: legacy strategy "${config.legacyStrategy}" is deprecated and not implemented.`);
+    }
+
+    if (config.onProgress) {
+      console.warn('LazyPic: onProgress is deprecated and not emitted by the current runtime.');
+    }
+
+    if (config.quality) {
+      console.warn('LazyPic: quality config is deprecated and currently has no runtime effect.');
+    }
+
+    if (config.completionEffect === undefined) {
+      this.config.completionEffect = { enabled: false, type: 'none' };
+    }
+
+    this.normalizeLegacyConfig();
 
     this.styleInjector = StyleInjector.getInstance();
     this.strategy = this.createStrategy();
@@ -82,11 +101,32 @@ export class LazyPic implements LazyPicInstance {
 
   updateConfig(newConfig: Partial<LazyPicConfig>): void {
     this.config = { ...this.config, ...newConfig };
+    if (newConfig.completionEffect === undefined && this.config.completionEffect === undefined) {
+      this.config.completionEffect = { enabled: false, type: 'none' };
+    }
+    this.normalizeLegacyConfig();
     this.strategy = this.createStrategy();
-    
+
     // 重新初始化
     this.destroy();
     this.init();
+  }
+
+  private normalizeLegacyConfig(): void {
+    if (!this.config.easing) {
+      return;
+    }
+
+    const legacyEasingMap: Record<string, LazyPicConfig['easing']> = {
+      easeIn: 'ease-in',
+      easeOut: 'ease-out',
+      easeInOut: 'ease-in-out'
+    };
+
+    const normalized = legacyEasingMap[this.config.easing as string];
+    if (normalized) {
+      this.config.easing = normalized;
+    }
   }
 
   async loadImage(element: Element): Promise<void> {

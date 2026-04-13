@@ -1,6 +1,6 @@
 /**
  * LazyPic - Elegant Progressive Image Loading
- * @version 0.4.0-beta
+ * @version 0.5.0
  * @author MakotoArai-CN
  * @license Apache-2.0
  */

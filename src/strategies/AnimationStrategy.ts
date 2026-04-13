@@ -3,33 +3,50 @@
  */
 
 import { BaseStrategy } from './BaseStrategy';
-import { createCompletionEffect } from '../utils/animation';
-import { 
-  createDotsLoader, 
-  createSpinnerLoader, 
-  createPulseLoader, 
+import {
+  createDotsLoader,
+  createSpinnerLoader,
+  createPulseLoader,
   createWaveLoader,
   createRippleLoader,
   createBreathingLoader,
-  createParticlesLoader
+  createParticlesLoader,
+  createProgressBarLoader,
+  createSkeletonLinesLoader,
+  createDiagonalShimmerLoader,
+  createOrbitLoader,
+  createGridLoader,
+  createTypingLoader,
+  createBarsLoader,
+  createArcLoader,
+  createWaveDotsLoader,
+  createScannerLoader,
+  createRadarLoader,
+  createShineLoader,
+  createPulseRingLoader,
+  createCubeLoader,
+  createEqualizerLoader,
+  createBlinkLoader,
+  createLadderLoader,
+  createFlowLoader
 } from '../animations';
 import type { LazyPicConfig } from '../types';
 
 export class AnimationStrategy extends BaseStrategy {
-  private placeholderElement?: HTMLElement;
-  private maskElement?: HTMLElement;
-  private originalImgStyles?: {
+  private originalStyles = new WeakMap<Element, {
     position: string;
     zIndex: string;
     opacity: string;
     transform: string;
     transition: string;
-  };
+  }>();
 
   async execute(element: Element, config: LazyPicConfig): Promise<void> {
     const img = element as HTMLImageElement;
     const dataSrc = img.dataset.src || img.src;
-    
+    let placeholderElement: HTMLElement | null = null;
+    let maskElement: HTMLElement | null = null;
+
     if (!dataSrc) {
       throw new Error('data-src attribute or src is required for animation strategy');
     }
@@ -37,119 +54,97 @@ export class AnimationStrategy extends BaseStrategy {
     this.notifyLoadStart(element);
 
     try {
-      // 保存原始样式
-      this.saveOriginalStyles(img);
-      
-      // 创建完全覆盖的占位符动画
-      this.showFullCoverPlaceholder(img, config);
+      this.saveOriginalStyles(element, img);
 
-      // 预加载图片
+      const placeholderState = this.showFullCoverPlaceholder(element, img, config);
+      placeholderElement = placeholderState.placeholder;
+      maskElement = placeholderState.mask;
+
       const startTime = Date.now();
-      const newImg = await this.preloadImage(dataSrc);
+      const newImg = await this.preloadImage(dataSrc, element);
       const loadTime = Date.now() - startTime;
-      
-      // 确保最小显示时间，避免闪烁
+
       const minDisplayTime = 800;
       if (loadTime < minDisplayTime) {
-        await new Promise(resolve => setTimeout(resolve, minDisplayTime - loadTime));
+        await new Promise(resolve => window.setTimeout(resolve, minDisplayTime - loadTime));
       }
-      
-      // 更新图片源
+
       if (img.dataset.src) {
         img.src = newImg.src;
-        // 确保图片完全加载后再继续
-        await this.waitForImageComplete(img);
+        await this.waitForImageComplete(img, element);
       }
 
-      // 优雅地隐藏占位符
-      await this.hideFullCoverPlaceholder(config);
-
-      // 恢复原始样式
-      this.restoreOriginalStyles(img);
-
-      // 执行完成效果
-      if (config.completionEffect?.enabled) {
-        await this.executeCompletionEffect(img, config.completionEffect);
-      }
+      await this.hideFullCoverPlaceholder(img, placeholderElement, maskElement, config, element);
+      this.restoreOriginalStyles(element, img);
+      await this.runCompletionEffect(img, config.completionEffect, { duration: 800, intensity: 1.2 });
 
       this.notifyLoadComplete(element);
     } catch (error) {
-      await this.hideFullCoverPlaceholder(config);
-      this.restoreOriginalStyles(img);
+      await this.hideFullCoverPlaceholder(img, placeholderElement, maskElement, config, element);
+      this.restoreOriginalStyles(element, img);
       this.handleError(error as Error, element);
     }
   }
 
-  private saveOriginalStyles(img: HTMLImageElement): void {
-    this.originalImgStyles = {
+  private saveOriginalStyles(owner: Element, img: HTMLImageElement): void {
+    this.originalStyles.set(owner, {
       position: img.style.position,
       zIndex: img.style.zIndex,
       opacity: img.style.opacity,
       transform: img.style.transform,
       transition: img.style.transition
-    };
-  }
-
-  private restoreOriginalStyles(img: HTMLImageElement): void {
-    if (this.originalImgStyles) {
-      Object.assign(img.style, this.originalImgStyles);
-      this.originalImgStyles = undefined;
-    }
-  }
-
-  private async waitForImageComplete(img: HTMLImageElement): Promise<void> {
-    if (img.complete && img.naturalHeight > 0) {
-      return Promise.resolve();
-    }
-    
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('Image load timeout'));
-      }, 5000);
-      
-      img.onload = () => {
-        clearTimeout(timeout);
-        resolve();
-      };
-      
-      img.onerror = () => {
-        clearTimeout(timeout);
-        reject(new Error('Image load failed'));
-      };
     });
   }
 
-  private showFullCoverPlaceholder(img: HTMLImageElement, config: LazyPicConfig): void {
+  private restoreOriginalStyles(owner: Element, img: HTMLImageElement): void {
+    const styles = this.originalStyles.get(owner);
+    if (styles) {
+      Object.assign(img.style, styles);
+      this.originalStyles.delete(owner);
+    }
+  }
+
+  private waitForImageComplete(img: HTMLImageElement, owner: Element): Promise<void> {
+    return this.waitForImageElement(img, 5000, owner);
+  }
+
+  private showFullCoverPlaceholder(owner: Element, img: HTMLImageElement, config: LazyPicConfig): {
+    placeholder: HTMLElement | null;
+    mask: HTMLElement | null;
+  } {
     const placeholder = config.placeholder;
     const container = img.parentElement;
-    
-    if (!container) return;
 
-    // 确保容器有相对定位
-    const containerStyle = getComputedStyle(container);
-    if (containerStyle.position === 'static') {
+    if (!container) {
+      return { placeholder: null, mask: null };
+    }
+
+    if (getComputedStyle(container).position === 'static') {
       container.style.position = 'relative';
     }
 
-    // 获取图片样式
     const imgStyle = getComputedStyle(img);
-    
-    // 创建遮罩层（如果启用）
-    if (config.mask?.enabled) {
-      this.maskElement = this.createMask(img, config);
-    }
+    const mask = this.createMaskElement(owner, config, {
+      container,
+      style: {
+        top: `${img.offsetTop}px`,
+        left: `${img.offsetLeft}px`,
+        width: `${img.offsetWidth}px`,
+        height: `${img.offsetHeight}px`,
+        zIndex: '99',
+        borderRadius: imgStyle.borderRadius || '0px'
+      }
+    });
 
-    // 创建完全覆盖的占位符容器
-    this.placeholderElement = document.createElement('div');
-    this.placeholderElement.className = 'lazy-pic-loader-container lazy-pic-animation-placeholder';
-    
-    // 精确覆盖图片的样式
-    Object.assign(this.placeholderElement.style, {
+    const placeholderElement = document.createElement('div');
+    placeholderElement.className = 'lazy-pic-loader-container lazy-pic-animation-placeholder';
+
+    Object.assign(placeholderElement.style, {
       position: 'absolute',
-      top: img.offsetTop + 'px',
-      left: img.offsetLeft + 'px',
-      width: img.offsetWidth + 'px',
-      height: img.offsetHeight + 'px',
+      top: `${img.offsetTop}px`,
+      left: `${img.offsetLeft}px`,
+      width: `${img.offsetWidth}px`,
+      height: `${img.offsetHeight}px`,
       backgroundColor: placeholder?.backgroundColor || 'rgba(248, 249, 250, 0.98)',
       backdropFilter: 'blur(3px)',
       borderRadius: imgStyle.borderRadius || '0px',
@@ -161,12 +156,10 @@ export class AnimationStrategy extends BaseStrategy {
       boxSizing: 'border-box'
     });
 
-    // 添加渐变背景（如果指定）
     if (placeholder?.backgroundGradient) {
-      this.placeholderElement.style.background = placeholder.backgroundGradient;
+      placeholderElement.style.background = placeholder.backgroundGradient;
     }
 
-    // 创建动画元素容器
     const animationContainer = document.createElement('div');
     animationContainer.style.cssText = `
       display: flex;
@@ -177,7 +170,6 @@ export class AnimationStrategy extends BaseStrategy {
       position: relative;
     `;
 
-    // 创建动画元素
     const animationElement = this.createAdvancedAnimationElement(
       placeholder?.animation || 'skeleton',
       placeholder?.color,
@@ -185,89 +177,57 @@ export class AnimationStrategy extends BaseStrategy {
       {
         width: img.offsetWidth,
         height: img.offsetHeight
-      }
+      },
+      placeholder?.customContent
     );
-    
-    animationContainer.appendChild(animationElement);
-    this.placeholderElement.appendChild(animationContainer);
 
-    // 隐藏原图片
+    animationContainer.appendChild(animationElement);
+    if (placeholder?.showText && placeholder.loadingText) {
+      const text = document.createElement('span');
+      text.textContent = placeholder.loadingText;
+      text.style.cssText = 'position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-size:14px;color:#666;';
+      animationContainer.appendChild(text);
+    }
+    placeholderElement.appendChild(animationContainer);
+
     img.style.opacity = '0';
     img.style.transition = 'none';
 
-    // 插入占位符
-    container.appendChild(this.placeholderElement);
+    container.appendChild(placeholderElement);
+    this.registerNode(owner, placeholderElement);
 
-    // 添加入场动画
-    this.placeholderElement.style.opacity = '0';
-    this.placeholderElement.style.transform = 'scale(0.98)';
-    
+    placeholderElement.style.opacity = '0';
+    placeholderElement.style.transform = 'scale(0.98)';
+
     requestAnimationFrame(() => {
-      if (this.placeholderElement) {
-        this.placeholderElement.style.transition = 'all 0.3s ease';
-        this.placeholderElement.style.opacity = '1';
-        this.placeholderElement.style.transform = 'scale(1)';
-      }
+      placeholderElement.style.transition = 'all 0.3s ease';
+      placeholderElement.style.opacity = '1';
+      placeholderElement.style.transform = 'scale(1)';
     });
+
+    return { placeholder: placeholderElement, mask };
   }
 
-  private createMask(img: HTMLImageElement, config: LazyPicConfig): HTMLElement {
-    const mask = document.createElement('div');
-    mask.className = 'lazy-pic-mask-overlay';
-    
-    const maskConfig = config.mask!;
-    
-    mask.style.cssText = `
-      position: absolute;
-      top: ${img.offsetTop}px;
-      left: ${img.offsetLeft}px;
-      width: ${img.offsetWidth}px;
-      height: ${img.offsetHeight}px;
-      z-index: 99;
-      opacity: ${maskConfig.opacity || 0.3};
-      border-radius: ${getComputedStyle(img).borderRadius || '0px'};
-    `;
-    
-    switch (maskConfig.type) {
-      case 'gradient':
-        mask.classList.add('lazy-pic-mask-gradient');
-        break;
-      case 'pattern':
-        mask.classList.add('lazy-pic-mask-pattern');
-        break;
-      case 'blur':
-        mask.style.backdropFilter = 'blur(8px)';
-        mask.style.backgroundColor = 'rgba(255,255,255,0.1)';
-        break;
-      case 'custom':
-        if (maskConfig.customContent) {
-          if (typeof maskConfig.customContent === 'string') {
-            mask.innerHTML = maskConfig.customContent;
-          } else {
-            mask.appendChild(maskConfig.customContent);
-          }
-        }
-        break;
-      default:
-        mask.style.backgroundColor = maskConfig.color || 'rgba(0,0,0,0.2)';
-    }
-    
-    const container = img.parentElement;
-    if (container) {
-      container.appendChild(mask);
-    }
-    
-    return mask;
+  private createCustomPlaceholder(content: string | HTMLElement): HTMLElement {
+    const container = document.createElement('div');
+    container.style.cssText = 'display:flex;align-items:center;justify-content:center;width:100%;height:100%;';
+    this.appendSafeContent(container, content);
+    return container;
   }
 
   private createAdvancedAnimationElement(
-    type: string, 
-    color = '#007bff', 
+    type: string,
+    color = '#007bff',
     speed = 1,
-    dimensions: { width: number; height: number }
+    dimensions: { width: number; height: number },
+    customContent?: string | HTMLElement
   ): HTMLElement {
+    if (customContent) {
+      return this.createCustomPlaceholder(customContent);
+    }
+
     const { width, height } = dimensions;
-    
+
     switch (type) {
       case 'skeleton':
         return this.createFullSkeleton(width, height);
@@ -285,6 +245,42 @@ export class AnimationStrategy extends BaseStrategy {
         return createBreathingLoader(color);
       case 'particles':
         return createParticlesLoader(color);
+      case 'progress-bar':
+        return createProgressBarLoader(color);
+      case 'skeleton-lines':
+        return createSkeletonLinesLoader(color);
+      case 'diagonal-shimmer':
+        return createDiagonalShimmerLoader(color);
+      case 'orbit':
+        return createOrbitLoader(color);
+      case 'grid':
+        return createGridLoader(color);
+      case 'typing':
+        return createTypingLoader(color);
+      case 'bars':
+        return createBarsLoader(color);
+      case 'arc':
+        return createArcLoader(color);
+      case 'wave-dots':
+        return createWaveDotsLoader(color);
+      case 'scanner':
+        return createScannerLoader(color);
+      case 'radar':
+        return createRadarLoader(color);
+      case 'shine':
+        return createShineLoader(color);
+      case 'pulse-ring':
+        return createPulseRingLoader(color);
+      case 'cube':
+        return createCubeLoader(color);
+      case 'equalizer':
+        return createEqualizerLoader(color);
+      case 'blink':
+        return createBlinkLoader(color);
+      case 'ladder':
+        return createLadderLoader(color);
+      case 'flow':
+        return createFlowLoader(color);
       case 'dots':
       default:
         return createDotsLoader(color, speed);
@@ -304,7 +300,6 @@ export class AnimationStrategy extends BaseStrategy {
       overflow: hidden;
     `;
 
-    // 添加一些装饰性的骨架元素 - 根据尺寸自适应
     if (width > 200 && height > 150) {
       const elements = [
         { width: '60%', height: '20px', top: '20px', left: '20px' },
@@ -326,7 +321,6 @@ export class AnimationStrategy extends BaseStrategy {
         skeleton.appendChild(skeletonEl);
       });
     } else if (width > 100 && height > 100) {
-      // 中等尺寸的骨架屏
       const centerEl = document.createElement('div');
       centerEl.style.cssText = `
         position: absolute;
@@ -340,7 +334,7 @@ export class AnimationStrategy extends BaseStrategy {
       `;
       skeleton.appendChild(centerEl);
     }
-    
+
     return skeleton;
   }
 
@@ -357,8 +351,7 @@ export class AnimationStrategy extends BaseStrategy {
       position: relative;
       overflow: hidden;
     `;
-    
-    // 根据尺寸添加装饰元素
+
     if (width > 150 && height > 150) {
       const overlay = document.createElement('div');
       overlay.style.cssText = `
@@ -372,122 +365,58 @@ export class AnimationStrategy extends BaseStrategy {
       `;
       shimmer.appendChild(overlay);
     }
-    
+
     return shimmer;
   }
 
-  private async hideFullCoverPlaceholder(config: LazyPicConfig): Promise<void> {
+  private async hideFullCoverPlaceholder(
+    img: HTMLImageElement,
+    placeholder: HTMLElement | null,
+    mask: HTMLElement | null,
+    config: LazyPicConfig,
+    owner: Element
+  ): Promise<void> {
     const duration = Math.min(config.animationDuration || 600, 800);
-    
-    // 创建退场动画序列
     const promises: Promise<void>[] = [];
-    
-    if (this.placeholderElement) {
-      // 主占位符退场动画 - 更平滑的退场
+
+    if (placeholder) {
       promises.push(
         new Promise<void>((resolve) => {
-          if (!this.placeholderElement) {
-            resolve();
-            return;
-          }
+          placeholder.style.transition = `all ${duration * 0.8}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+          placeholder.style.opacity = '0';
+          placeholder.style.transform = 'scale(0.95)';
 
-          this.placeholderElement.style.transition = `all ${duration * 0.8}ms cubic-bezier(0.4, 0, 0.2, 1)`;
-          this.placeholderElement.style.opacity = '0';
-          this.placeholderElement.style.transform = 'scale(0.95)';
-          
-          setTimeout(() => {
-            this.placeholderElement?.remove();
-            this.placeholderElement = undefined;
+          window.setTimeout(() => {
+            placeholder.remove();
+            this.unregisterNode(owner, placeholder);
             resolve();
           }, duration * 0.8);
         })
       );
     }
-    
-    if (this.maskElement) {
-      // 遮罩退场动画
-      const maskAnimation = config.mask?.animation || 'fade';
-      promises.push(this.removeMask(this.maskElement, maskAnimation));
+
+    if (mask) {
+      promises.push(
+        this.removeMaskElement(mask, config.mask?.animation || 'fade', 400).then(() => {
+          this.unregisterNode(owner, mask);
+        })
+      );
     }
-    
-    // 同时显示原图
-    const container = this.placeholderElement?.parentElement;
-    const img = container?.querySelector('img') as HTMLImageElement;
-    if (img) {
-      setTimeout(() => {
-        img.style.transition = `opacity ${duration * 0.6}ms ease`;
-        img.style.opacity = '1';
-      }, duration * 0.2);
-    }
-    
+
+    window.setTimeout(() => {
+      img.style.transition = `opacity ${duration * 0.6}ms ease`;
+      img.style.opacity = '1';
+    }, duration * 0.2);
+
     await Promise.all(promises);
-  }
-
-  private async removeMask(mask: HTMLElement, animation: string): Promise<void> {
-    const duration = 400;
-    
-    return new Promise<void>((resolve) => {
-      mask.style.transition = `all ${duration}ms ease`;
-      
-      switch (animation) {
-        case 'slide':
-          mask.style.transform = 'translateX(100%)';
-          mask.style.opacity = '0';
-          break;
-        case 'zoom':
-          mask.style.transform = 'scale(0)';
-          mask.style.opacity = '0';
-          break;
-        case 'dissolve':
-          this.createDissolveEffect(mask, duration).then(resolve);
-          return;
-        default:
-          mask.style.opacity = '0';
-      }
-      
-      setTimeout(() => {
-        mask.remove();
-        resolve();
-      }, duration);
-    });
-  }
-
-  private async createDissolveEffect(mask: HTMLElement, duration: number): Promise<void> {
-    const steps = 10;
-    for (let i = 0; i < steps; i++) {
-      mask.style.opacity = (1 - (i + 1) / steps).toString();
-      mask.style.filter = `blur(${i * 3}px)`;
-      await new Promise(resolve => setTimeout(resolve, duration / steps));
-    }
-  }
-
-  private async executeCompletionEffect(img: HTMLImageElement, effectConfig: any): Promise<void> {
-    const { type, duration = 800, intensity = 1.2, color } = effectConfig;
-    
-    if (type && type !== 'none') {
-      await createCompletionEffect(img, type, { duration, intensity, color });
-    }
   }
 
   cleanup(element: Element): void {
     super.cleanup(element);
-    
+
     const img = element as HTMLImageElement;
-    
-    // 恢复原始样式
-    this.restoreOriginalStyles(img);
-    
-    if (this.placeholderElement) {
-      this.placeholderElement.remove();
-      this.placeholderElement = undefined;
-    }
-    
-    if (this.maskElement) {
-      this.maskElement.remove();
-      this.maskElement = undefined;
-    }
-    
-    // 清理容器中的遮罩
+    this.restoreOriginalStyles(element, img);
+
     const container = img.parentElement;
     if (container) {
       const masks = container.querySelectorAll('.lazy-pic-mask-overlay, .lazy-pic-animation-placeholder');

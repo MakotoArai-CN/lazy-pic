@@ -167,64 +167,64 @@ function isTransformProperty(property: string): boolean {
 }
 
 function handleTransformProperty(element: HTMLElement, property: string, value: number, unit: string): void {
-  const currentTransform = element.style.transform || '';
-  let newTransform = '';
-  
+  const transformMap = readTransformMap(element.style.transform || '');
+
   switch (property) {
     case 'translateX':
-      newTransform = `translateX(${value}${unit})`;
+      transformMap.set('translateX', `translateX(${value}${unit})`);
       break;
     case 'translateY':
-      newTransform = `translateY(${value}${unit})`;
+      transformMap.set('translateY', `translateY(${value}${unit})`);
       break;
     case 'translateZ':
-      newTransform = `translateZ(${value}${unit})`;
+      transformMap.set('translateZ', `translateZ(${value}${unit})`);
       break;
     case 'rotate':
     case 'rotateZ':
-      newTransform = `rotate(${value}${unit})`;
+      transformMap.set('rotate', `rotate(${value}${unit})`);
       break;
     case 'rotateX':
-      newTransform = `rotateX(${value}${unit})`;
+      transformMap.set('rotateX', `rotateX(${value}${unit})`);
       break;
     case 'rotateY':
-      newTransform = `rotateY(${value}${unit})`;
+      transformMap.set('rotateY', `rotateY(${value}${unit})`);
       break;
     case 'scale':
-      newTransform = `scale(${value})`;
+      transformMap.set('scale', `scale(${value})`);
       break;
     case 'scaleX':
-      newTransform = `scaleX(${value})`;
+      transformMap.set('scaleX', `scaleX(${value})`);
       break;
     case 'scaleY':
-      newTransform = `scaleY(${value})`;
+      transformMap.set('scaleY', `scaleY(${value})`);
       break;
     case 'skew':
-      newTransform = `skew(${value}${unit})`;
+      transformMap.set('skew', `skew(${value}${unit})`);
       break;
     case 'skewX':
-      newTransform = `skewX(${value}${unit})`;
+      transformMap.set('skewX', `skewX(${value}${unit})`);
       break;
     case 'skewY':
-      newTransform = `skewY(${value}${unit})`;
+      transformMap.set('skewY', `skewY(${value}${unit})`);
       break;
     default:
       element.style.setProperty(property, value + unit);
       return;
   }
-  
-  updateTransform(element, currentTransform, newTransform);
+
+  element.style.transform = Array.from(transformMap.values()).join(' ').trim();
 }
 
-function updateTransform(element: HTMLElement, currentTransform: string, newTransform: string): void {
-  const transformType = newTransform.split('(')[0];
-  const regex = new RegExp(`${transformType}\KATEX_INLINE_OPEN[^)]*\KATEX_INLINE_CLOSE`, 'g');
-  
-  if (currentTransform.includes(transformType)) {
-    element.style.transform = currentTransform.replace(regex, newTransform);
-  } else {
-    element.style.transform = `${currentTransform} ${newTransform}`.trim();
-  }
+function readTransformMap(transform: string): Map<string, string> {
+  const transformMap = new Map<string, string>();
+  const matches = transform.match(/\w+\([^)]*\)/g) || [];
+
+  matches.forEach(entry => {
+    const type = entry.slice(0, entry.indexOf('('));
+    transformMap.set(type, entry);
+  });
+
+  return transformMap;
 }
 
 // 渐进式过渡效果
