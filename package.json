@@ -1,6 +1,6 @@
 {
   "name": "@makotoarai/lazy-pic",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Elegant progressive image loading library with TypeScript support",
   "main": "dist/lazy-pic.umd.js",
   "module": "dist/lazy-pic.es.js",
