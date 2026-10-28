@@ -1,6 +1,6 @@
 {
   "name": "@makotoarai/lazy-pic",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Elegant progressive image loading library with TypeScript support",
   "main": "dist/lazy-pic.umd.js",
   "module": "dist/lazy-pic.es.js",
@@ -20,7 +20,7 @@
     "build": "tsc && vite build",
     "build:types": "tsc --emitDeclarationOnly",
     "preview": "vite preview",
-    "test": "bunx vitest run --environment happy-dom src/smoke.test.ts src/core/StyleInjector.test.ts src/strategies/BaseStrategy.test.ts",
+    "test": "vitest run",
     "lint": "eslint src --ext .ts,.tsx",
     "format": "prettier --write src/**/*.{ts,tsx}",
     "prepublishOnly": "bun run build",

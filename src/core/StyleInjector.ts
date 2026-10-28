@@ -17,12 +17,12 @@ export class StyleInjector {
   }
 
   injectStyles(): void {
-    if (this.injected) return;
+    if (this.injected || typeof document === 'undefined') return;
 
     this.styleElement = document.createElement('style');
     this.styleElement.id = 'lazy-pic-styles';
-    this.styleElement.innerHTML = animationStyles;
-    
+    this.styleElement.textContent = animationStyles;
+
     document.head.appendChild(this.styleElement);
     this.injected = true;
   }
@@ -41,7 +41,7 @@ export class StyleInjector {
     }
     
     if (this.styleElement) {
-      this.styleElement.innerHTML += styles;
+      this.styleElement.textContent += styles;
     }
   }
 }

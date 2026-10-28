@@ -1,35 +1,35 @@
 export interface LazyPicConfig {
   /** 目标元素的选择器 */
   selector: string;
-  /** 动画持续时间（毫秒） */
+  /** 动画持续时间（毫秒），默认 600；会被限制在 120–2000ms */
   animationDuration?: number;
   /** 懒加载策略类型 */
   strategy?: 'dual-image' | 'data-src' | 'animation';
   /** @deprecated `progressive` 和 `mosaic` 目前未实现，请改用已有策略 */
   legacyStrategy?: 'progressive' | 'mosaic';
-  /** 是否启用高斯模糊效果 */
+  /** 是否启用高斯模糊占位效果 */
   enableBlur?: boolean;
   /** 模糊强度 */
   blurIntensity?: number;
   /** 动画类型 */
   animationType?: 'fade' | 'slide' | 'zoom' | 'blur' | 'scale' | 'rotate' | 'flip' | 'reveal' | 'spiral';
-  /** 缓动函数类型 */
+  /** 缓动函数类型；会映射到合成器友好的 CSS timing function */
   easing?: 'linear' | 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'bounce' | 'elastic';
-  /** 根边距 */
+  /** 根边距，默认 200px，用于提前预加载 */
   rootMargin?: string;
-  /** 阈值 */
+  /** 阈值，默认 0.01 */
   threshold?: number | number[];
   /** 占位符配置 */
   placeholder?: PlaceholderConfig;
   /** @deprecated 质量优化配置当前未在运行时生效 */
   quality?: QualityConfig;
-  /** 加载完成效果配置 */
+  /** 加载完成效果配置；默认关闭，且不会阻塞 onLoad */
   completionEffect?: CompletionEffectConfig;
   /** 占位遮罩配置 */
   mask?: MaskConfig;
   /** 错误处理回调 */
   onError?: (error: Error, element: Element) => void;
-  /** 加载完成回调 */
+  /** 加载完成回调（在图片可见后立即触发） */
   onLoad?: (element: Element) => void;
   /** 开始加载回调 */
   onStartLoad?: (element: Element) => void;
@@ -121,4 +121,6 @@ export interface LoadStrategy {
   execute(element: Element, config: LazyPicConfig): Promise<void>;
   /** 清理资源 */
   cleanup(element: Element): void;
+  /** 元素进入观察队列时的无副作用准备（如先隐藏全图） */
+  prepare?(element: Element, config: LazyPicConfig): void;
 }

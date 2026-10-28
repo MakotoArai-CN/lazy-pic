@@ -894,7 +894,7 @@ function App() {
   &lt;div key={img.id} style={{ position: 'relative' }}&gt;
     &lt;img src={img.thumbSrc} className="thumbnail"
       style={{ position: 'absolute', width: '100%' }} /&gt;
-    &lt;img src={img.fullSrc} className="main-image"
+    &lt;img data-src={img.fullSrc} className="main-image"
       style={{ position: 'relative', zIndex: 2 }} /&gt;
   &lt;/div&gt;
 ))}</code></pre>

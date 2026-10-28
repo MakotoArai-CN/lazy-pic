@@ -1,12 +1,20 @@
 /**
  * LazyPic - Elegant Progressive Image Loading
- * @version 0.5.0
+ * @version 0.6.0
  * @author MakotoArai-CN
  * @license Apache-2.0
  */
 
 export { LazyPic } from './core/LazyPic';
-export type { LazyPicConfig, LazyPicInstance, LoadStrategy, PlaceholderConfig, QualityConfig } from './types';
+export type {
+  LazyPicConfig,
+  LazyPicInstance,
+  LoadStrategy,
+  PlaceholderConfig,
+  CompletionEffectConfig,
+  MaskConfig,
+  QualityConfig
+} from './types';
 
 // 默认导出
 import { LazyPic } from './core/LazyPic';

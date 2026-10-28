@@ -688,9 +688,9 @@
                         </div>
                         <div class="image-preview">
                             <img src="https://picsum.photos/400/300?random=1&blur=2" class="thumbnail"
-                                style="position: absolute; width: 100%; height: 100%;">
-                            <img src="https://picsum.photos/800/600?random=1" class="dual-image"
-                                style="position: relative; z-index: 2;">
+                                style="position: absolute; width: 100%; height: 100%;" alt="">
+                            <img data-src="https://picsum.photos/800/600?random=1" class="dual-image"
+                                style="position: relative; z-index: 2;" alt="">
                             <div class="status-badge status-loading">等待加载</div>
                         </div>
                         <div class="card-content">
@@ -707,9 +707,9 @@
                         </div>
                         <div class="image-preview">
                             <img src="https://picsum.photos/400/300?random=2&blur=2" class="thumbnail"
-                                style="position: absolute; width: 100%; height: 100%;">
-                            <img src="https://picsum.photos/800/600?random=2" class="dual-image"
-                                style="position: relative; z-index: 2;">
+                                style="position: absolute; width: 100%; height: 100%;" alt="">
+                            <img data-src="https://picsum.photos/800/600?random=2" class="dual-image"
+                                style="position: relative; z-index: 2;" alt="">
                             <div class="status-badge status-loading">等待加载</div>
                         </div>
                         <div class="card-content">
@@ -726,9 +726,9 @@
                         </div>
                         <div class="image-preview">
                             <img src="https://picsum.photos/400/300?random=3&blur=2" class="thumbnail"
-                                style="position: absolute; width: 100%; height: 100%;">
-                            <img src="https://picsum.photos/800/600?random=3" class="dual-image"
-                                style="position: relative; z-index: 2;">
+                                style="position: absolute; width: 100%; height: 100%;" alt="">
+                            <img data-src="https://picsum.photos/800/600?random=3" class="dual-image"
+                                style="position: relative; z-index: 2;" alt="">
                             <div class="status-badge status-loading">等待加载</div>
                         </div>
                         <div class="card-content">
@@ -953,7 +953,7 @@ lazyPic.init();</code></pre>
                         <pre><code id="html-structure" class="language-html"><!-- 双图片策略 -->
 &lt;div style="position: relative"&gt;
   &lt;img src="thumbnail.jpg" class="thumbnail" style="position: absolute; width: 100%;"&gt;
-  &lt;img src="full-image.jpg" class="main-image"&gt;
+  &lt;img data-src="full-image.jpg" class="main-image"&gt;
 &lt;/div&gt;
 
 <!-- 数据源策略 -->
@@ -1311,11 +1311,11 @@ lazyPic.destroy();</code></pre>
                 threshold: 0.1,
                 onStartLoad: (element) => {
                     updateStatus(element, 'loading');
-                    addLog(`🎭 双图片策略: 开始加载 ${element.src}`);
+                    addLog(`🎭 双图片策略: 开始加载 ${element.dataset.src || element.src}`);
                 },
                 onLoad: (element) => {
                     updateStatus(element, 'loaded');
-                    addLog(`✅ 双图片策略: 加载完成 ${element.src}`, 'success');
+                    addLog(`✅ 双图片策略: 加载完成 ${element.dataset.src || element.src}`, 'success');
                 },
                 onError: (error, element) => {
                     updateStatus(element, 'error');
@@ -1430,8 +1430,9 @@ lazyPic.destroy();</code></pre>
             const timestamp = Date.now();
 
             document.querySelectorAll('.dual-image').forEach(img => {
-                const originalSrc = img.src.split('&t=')[0];
-                img.src = originalSrc + '&t=' + timestamp;
+                const originalSrc = (img.dataset.src || img.src).split('&t=')[0];
+                img.dataset.src = originalSrc + '&t=' + timestamp;
+                img.removeAttribute('src');
             });
 
             document.querySelectorAll('.data-src-image, .animation-image').forEach(img => {
@@ -1450,9 +1451,15 @@ lazyPic.destroy();</code></pre>
             addLog('⚡ 开始手动加载所有图片...', 'warning');
 
             const loadPromises = [];
-            document.querySelectorAll('.dual-image, .data-src-image, .animation-image').forEach((element) => {
-                lazyPicInstances.forEach((instance) => {
-                    if (instance && typeof instance.loadImage === 'function') {
+            const groups = [
+                ['.dual-image', lazyPicInstances[0]],
+                ['.data-src-image', lazyPicInstances[1]],
+                ['.animation-image', lazyPicInstances[2]]
+            ];
+            groups.forEach(([selector, instance]) => {
+                if (!instance) return;
+                document.querySelectorAll(selector).forEach((element) => {
+                    if (typeof instance.loadImage === 'function') {
                         loadPromises.push(instance.loadImage(element).catch(() => undefined));
                     }
                 });

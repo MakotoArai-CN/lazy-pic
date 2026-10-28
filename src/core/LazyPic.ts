@@ -1,13 +1,25 @@
 /**
- * LazyPic 核心类
+ * LazyPic core orchestration.
  */
 
 import type { LazyPicConfig, LazyPicInstance, LoadStrategy } from '../types';
-import { EnhancedIntersectionObserver, createIntersectionObserver } from '../utils/observer';
+import { createIntersectionObserver, EnhancedIntersectionObserver } from '../utils/observer';
 import { TwoImageStrategy } from '../strategies/TwoImageStrategy';
 import { DataSrcStrategy } from '../strategies/DataSrcStrategy';
 import { AnimationStrategy } from '../strategies/AnimationStrategy';
 import { StyleInjector } from './StyleInjector';
+
+const DEFAULT_CONFIG: Omit<LazyPicConfig, 'selector'> = {
+  animationDuration: 600,
+  strategy: 'dual-image',
+  enableBlur: true,
+  blurIntensity: 8,
+  animationType: 'fade',
+  easing: 'ease-out',
+  rootMargin: '200px',
+  threshold: 0.01,
+  completionEffect: { enabled: false, type: 'none' }
+};
 
 export class LazyPic implements LazyPicInstance {
   private config: LazyPicConfig;
@@ -16,71 +28,77 @@ export class LazyPic implements LazyPicInstance {
   private elements: Element[] = [];
   private styleInjector: StyleInjector;
   private status: 'idle' | 'loading' | 'loaded' | 'error' = 'idle';
+  private loadingElements = new WeakMap<Element, Promise<void>>();
+  private generation = 0;
 
   constructor(config: LazyPicConfig) {
     this.config = {
-      animationDuration: 1000,
-      strategy: 'dual-image',
-      enableBlur: true,
-      blurIntensity: 8,
-      animationType: 'fade',
-      easing: 'ease-out',
-      rootMargin: '50px',
-      threshold: 0.1,
-      completionEffect: { enabled: false, type: 'none' },
-      ...config
+      ...DEFAULT_CONFIG,
+      ...config,
+      completionEffect: {
+        enabled: false,
+        type: 'none',
+        ...(config.completionEffect || {})
+      }
     };
 
     if (config.legacyStrategy) {
       console.warn(`LazyPic: legacy strategy "${config.legacyStrategy}" is deprecated and not implemented.`);
     }
-
     if (config.onProgress) {
       console.warn('LazyPic: onProgress is deprecated and not emitted by the current runtime.');
     }
-
     if (config.quality) {
       console.warn('LazyPic: quality config is deprecated and currently has no runtime effect.');
     }
 
-    if (config.completionEffect === undefined) {
-      this.config.completionEffect = { enabled: false, type: 'none' };
-    }
-
     this.normalizeLegacyConfig();
-
     this.styleInjector = StyleInjector.getInstance();
     this.strategy = this.createStrategy();
   }
 
   init(): void {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
     this.status = 'loading';
-    
-    // 注入样式
     this.styleInjector.injectStyles();
 
-    // 获取目标元素
+    if (!this.config.selector) {
+      console.warn('LazyPic: a selector is required.');
+      this.status = 'idle';
+      return;
+    }
+
     this.elements = Array.from(document.querySelectorAll(this.config.selector));
-    
+
     if (this.elements.length === 0) {
       console.warn(`LazyPic: No elements found with selector "${this.config.selector}"`);
       this.status = 'idle';
       return;
     }
 
-    // 创建观察者
+    // Graceful fallback for environments without IntersectionObserver.
+    if (typeof IntersectionObserver === 'undefined') {
+      this.elements.forEach(element => {
+        this.prepareElement(element);
+        void this.startLoad(element);
+      });
+      this.status = 'loaded';
+      return;
+    }
+
     this.observer = createIntersectionObserver(
       (entries) => this.handleIntersection(entries),
       this.config
     );
 
-    // 开始观察元素
     this.elements.forEach(element => {
-      if (this.observer) {
-        this.observer.observe(element, () => this.strategy.cleanup(element));
-      }
+      this.prepareElement(element);
+      this.observer?.observe(element);
     });
-    
+
     this.status = 'loaded';
   }
 
@@ -89,27 +107,51 @@ export class LazyPic implements LazyPicInstance {
       this.observer.disconnect();
       this.observer = undefined;
     }
-    
-    // 清理所有元素
+
     this.elements.forEach(element => {
       this.strategy.cleanup(element);
     });
-    
+
     this.elements = [];
+    this.loadingElements = new WeakMap<Element, Promise<void>>();
+    this.generation += 1;
     this.status = 'idle';
   }
 
   updateConfig(newConfig: Partial<LazyPicConfig>): void {
-    this.config = { ...this.config, ...newConfig };
-    if (newConfig.completionEffect === undefined && this.config.completionEffect === undefined) {
-      this.config.completionEffect = { enabled: false, type: 'none' };
-    }
+    this.destroy();
+
+    this.config = {
+      ...this.config,
+      ...newConfig,
+      completionEffect: {
+        enabled: false,
+        type: 'none',
+        ...(newConfig.completionEffect || this.config.completionEffect || {})
+      }
+    };
     this.normalizeLegacyConfig();
     this.strategy = this.createStrategy();
+    this.init();
+  }
 
-    // 重新初始化
+  loadImage(element: Element): Promise<void> {
+    this.styleInjector.injectStyles();
+    this.prepareElement(element);
+    return this.startLoad(element);
+  }
+
+  refresh(): void {
     this.destroy();
     this.init();
+  }
+
+  getStatus(): 'idle' | 'loading' | 'loaded' | 'error' {
+    return this.status;
+  }
+
+  private prepareElement(element: Element): void {
+    this.strategy.prepare?.(element, this.config);
   }
 
   private normalizeLegacyConfig(): void {
@@ -129,27 +171,6 @@ export class LazyPic implements LazyPicInstance {
     }
   }
 
-  async loadImage(element: Element): Promise<void> {
-    try {
-      await this.strategy.execute(element, this.config);
-    } catch (error) {
-      this.status = 'error';
-      if (this.config.onError) {
-        this.config.onError(error as Error, element);
-      }
-      throw error;
-    }
-  }
-
-  refresh(): void {
-    this.destroy();
-    this.init();
-  }
-
-  getStatus(): 'idle' | 'loading' | 'loaded' | 'error' {
-    return this.status;
-  }
-
   private createStrategy(): LoadStrategy {
     switch (this.config.strategy) {
       case 'data-src':
@@ -162,26 +183,50 @@ export class LazyPic implements LazyPicInstance {
     }
   }
 
-  private async handleIntersection(entries: IntersectionObserverEntry[]): Promise<void> {
+  /**
+   * Loads every intersecting element independently. The previous implementation
+   * awaited each strategy in a loop, which serialized the entire viewport behind
+   * the first image's animation.
+   */
+  private handleIntersection(entries: IntersectionObserverEntry[]): void {
     for (const entry of entries) {
-      if (entry.isIntersecting) {
-        const element = entry.target;
-        
-        // 停止观察该元素
-        if (this.observer) {
-          this.observer.unobserve(element);
-        }
+      if (!entry.isIntersecting) {
+        continue;
+      }
 
-        // 执行加载策略
-        try {
-          await this.strategy.execute(element, this.config);
-        } catch (error) {
+      this.observer?.unobserve(entry.target);
+      void this.startLoad(entry.target);
+    }
+  }
+
+  private startLoad(element: Element): Promise<void> {
+    const existing = this.loadingElements.get(element);
+    if (existing) {
+      return existing;
+    }
+
+    const loadingElements = this.loadingElements;
+    const generation = this.generation;
+    const task = this.strategy
+      .execute(element, this.config)
+      .then(() => {
+        if (generation === this.generation) {
+          this.status = 'loaded';
+        }
+      })
+      .catch((error: Error) => {
+        if (generation === this.generation) {
           this.status = 'error';
           if (this.config.onError) {
-            this.config.onError(error as Error, element);
+            this.config.onError(error, element);
           }
         }
-      }
-    }
+      })
+      .finally(() => {
+        loadingElements.delete(element);
+      });
+
+    loadingElements.set(element, task);
+    return task;
   }
 }
